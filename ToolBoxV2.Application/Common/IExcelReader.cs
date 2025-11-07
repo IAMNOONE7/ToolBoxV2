@@ -11,7 +11,7 @@ namespace ToolBoxV2.Application.Common
         public string FilePath { get; init; } = string.Empty;
         public string SheetName { get; init; } = string.Empty;
         public int HeaderRowIndex { get; init; } = 1;
-        public IReadOnlyList<string> ExpectedColumns { get; init; } = [];
+        public IReadOnlyList<string>? ExpectedColumns { get; init; }
     }
 
     public sealed class ExcelRow

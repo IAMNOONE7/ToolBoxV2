@@ -28,6 +28,9 @@ namespace ToolBoxV2.Infrastracture.Excel
 
             // 1) read header row
             var headerRow = ws.Row(request.HeaderRowIndex);
+            // buildColumnMap will return:
+            // - only requested columns, if ExpectedColumns not empty
+            // - ALL header columns, if ExpectedColumns empty
             var columnMap = BuildColumnMap(headerRow, request.ExpectedColumns);
 
             // 2) start reading from next row
@@ -43,20 +46,15 @@ namespace ToolBoxV2.Infrastracture.Excel
 
                 var excelRow = new ExcelRow();
 
-                foreach (var expected in request.ExpectedColumns)
+                // we must iterate over the *map* (the actual columns we decided to use),
+                // not over request.ExpectedColumns, because that might be empty.
+                foreach (var kvp in columnMap)
                 {
-                    if (columnMap.TryGetValue(expected, out var colNumber))
-                    {
-                        var cell = row.Cell(colNumber);
-                        // ClosedXML gives you object-like value
-                        var cellVal = cell.Value;
-                        excelRow.Cells[expected] = cellVal;
-                    }
-                    else
-                    {
-                        // header didn't contain this expected column
-                        excelRow.Cells[expected] = null;
-                    }
+                    var colName = kvp.Key;
+                    var colNumber = kvp.Value;
+
+                    var cellVal = row.Cell(colNumber).Value;
+                    excelRow.Cells[colName] = cellVal;
                 }
 
                 yield return excelRow;
@@ -82,6 +80,16 @@ namespace ToolBoxV2.Infrastracture.Excel
                     // ColumnNumber() is 1-based
                     headerLookup[text] = cell.Address.ColumnNumber;
                 }
+            }
+
+            if (expectedColumns.Count == 0)
+            {
+
+                map = headerLookup
+                    .Where(x => !string.IsNullOrEmpty(x.Key))
+                    .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+
+                return map;
             }
 
             // Now match only expected columns

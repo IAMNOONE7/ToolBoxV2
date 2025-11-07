@@ -70,5 +70,65 @@ namespace ToolBoxV2.Presentation.WPF.Properties {
                 this["LocalMessHeaderRow"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string XMLEditTargetPath {
+            get {
+                return ((string)(this["XMLEditTargetPath"]));
+            }
+            set {
+                this["XMLEditTargetPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string XMLEditFileExPath {
+            get {
+                return ((string)(this["XMLEditFileExPath"]));
+            }
+            set {
+                this["XMLEditFileExPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string XMLEditFileXmlPath {
+            get {
+                return ((string)(this["XMLEditFileXmlPath"]));
+            }
+            set {
+                this["XMLEditFileXmlPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string XMLEditSheetName {
+            get {
+                return ((string)(this["XMLEditSheetName"]));
+            }
+            set {
+                this["XMLEditSheetName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int XMLEditHeaderRow {
+            get {
+                return ((int)(this["XMLEditHeaderRow"]));
+            }
+            set {
+                this["XMLEditHeaderRow"] = value;
+            }
+        }
     }
 }

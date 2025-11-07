@@ -159,6 +159,9 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 
         private async Task ImportAsync()
         {
+            //==========================================
+            // TODO: cancelation Token
+            //==========================================
             if (IsLoading)
                 return; // just in case someone bypasses UI
             try

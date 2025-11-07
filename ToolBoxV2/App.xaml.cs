@@ -25,10 +25,12 @@ namespace ToolBoxV2.Presentation.WPF
                     // viewmodels
                     services.AddSingleton<MainViewModel>();
                     services.AddSingleton<LocalMessagesViewModel>();
+                    services.AddSingleton<XMLEditorViewModel>();
 
                     // windows
                     services.AddSingleton<MainWindow>();
                     services.AddSingleton<LocalMessageView>();
+                    services.AddSingleton<XMLEditorView>();
                 })
                 .Build();
         }
@@ -39,7 +41,7 @@ namespace ToolBoxV2.Presentation.WPF
 
             var mainWindow = AppHost.Services.GetRequiredService<MainWindow>();
             //mainWindow.DataContext = AppHost.Services.GetRequiredService<MainViewModel>();
-            mainWindow.DataContext = AppHost.Services.GetRequiredService<LocalMessagesViewModel>();
+            mainWindow.DataContext = AppHost.Services.GetRequiredService<XMLEditorViewModel>();
             mainWindow.Show();
 
             base.OnStartup(e);

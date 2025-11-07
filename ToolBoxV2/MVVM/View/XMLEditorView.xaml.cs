@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -9,20 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using ToolBoxV2.Presentation.WPF.MVVM.ViewModel;
 
-namespace ToolBoxV2.Presentation.WPF
+namespace ToolBoxV2.Presentation.WPF.MVVM.View
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for XMLEditorView.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class XMLEditorView : UserControl
     {
-        public MainWindow()
+        public XMLEditorView()
         {
             InitializeComponent();
-            var vm = App.AppHost.Services.GetRequiredService<XMLEditorViewModel>();
-            DataContext = vm;
         }
     }
 }
