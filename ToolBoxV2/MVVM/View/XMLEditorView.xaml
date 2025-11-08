@@ -5,18 +5,19 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.View"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             xmlns:domain="clr-namespace:ToolBoxV2.Domain.XMLEditor;assembly=ToolBoxV2.Domain"
+             d:DesignHeight="1500" d:DesignWidth="1900">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="13*"/>
-            <RowDefinition Height="72*"/>
-            <RowDefinition Height="15*"/>
+            <RowDefinition Height="25*"/>
+            <RowDefinition Height="35*"/>
+            <RowDefinition Height="40*"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20*"/>
-            <ColumnDefinition Width="65*"/>
             <ColumnDefinition Width="15*"/>
+            <ColumnDefinition Width="65*"/>
         </Grid.ColumnDefinitions>
 
         <Button Content="Load Data"  
@@ -28,11 +29,78 @@
         <TextBlock Text="Loading..." Grid.Column="1"  
                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
                Foreground="OrangeRed" />
+       
 
         <DataGrid ItemsSource="{Binding TableView}"
                   Grid.Row="1"
-                  Grid.Column="1"
+                  Grid.Column="0"
+                  Margin="8"
                   AutoGenerateColumns="True"
                   IsReadOnly="False" />
+
+        <TreeView Grid.Column="1"
+                  Grid.Row="1"
+                  Margin="8"
+                  ItemsSource="{Binding RootNode.Children}"
+                  SelectedItemChanged="TreeView_SelectedItemChanged">
+            <TreeView.Resources>
+                <!-- hierarchical template for XmlNodeModel -->
+                <HierarchicalDataTemplate DataType="{x:Type domain:XMLNodeModel}"
+                                          ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                        <!-- show e.g. name attribute if present -->
+                        <TextBlock Text=" (" />
+                        <TextBlock Text="{Binding Attributes[name]}" />
+                        <TextBlock Text=")" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+
+        <!-- parameters + button -->
+        <StackPanel Grid.Column="2" Margin="4">
+            <TextBlock Text="Parameters" FontWeight="Bold" Margin="0,0,0,4"/>
+            <ListBox ItemsSource="{Binding Parameters}"
+                 SelectedItem="{Binding SelectedParameter}"
+                 Margin="0,0,0,8"/>
+            <Button Content="Replace selection"
+                Command="{Binding ReplaceSelectionCommand}" />
+        </StackPanel>
+
+
+        <TextBox x:Name="XmlTextBox"
+             Grid.Column="2"
+             Grid.Row="1"
+             Text="{Binding TemplateXml, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+             AcceptsReturn="True"
+             AcceptsTab="True"
+             VerticalScrollBarVisibility="Auto"
+             HorizontalScrollBarVisibility="Auto"
+             FontFamily="Consolas"
+             SelectionChanged="XmlTextBox_SelectionChanged"
+             Margin="4"/>
+
+        <TextBox Grid.Column="2"
+                 Grid.Row="2"
+                 Grid.RowSpan="2"
+                 Text="{Binding GeneratedXmlPreview}"
+                 AcceptsReturn="True"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"
+                 FontFamily="Consolas"
+                 Margin="4"/>
+
+        <Button Content="Generate XML"
+                Grid.Row="2"                
+                Command="{Binding GenerateCommand}"
+                Margin="0,12,0,0"/>
+
+        <Button Content="Save generated XML"
+                Grid.Row="2"
+                Grid.Column="1"
+            Command="{Binding SaveGeneratedCommand}"
+            Margin="0,4,0,0"/>
+
     </Grid>
 </UserControl>
