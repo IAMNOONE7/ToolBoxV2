@@ -189,6 +189,31 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
         private readonly IXMLTemplateService _xmlTemplateService;
         private readonly IXMLExportService _xmlExportService;
 
+        // which operation to perform
+        private XMLEditMode _editMode = XMLEditMode.Generate;
+        public XMLEditMode EditMode
+        {
+            get => _editMode;
+            set => SetProperty(ref _editMode, value);
+        }
+
+        // which attribute on the target element is the key (e.g., "name", "id")
+        private string _keyAttributeName = "name";
+        public string KeyAttributeName
+        {
+            get => _keyAttributeName;
+            set => SetProperty(ref _keyAttributeName, value);
+        }
+
+        // which Excel column contains the key value (must match a header in the sheet)
+        private string _keyColumnName = "Key";
+        public string KeyColumnName
+        {
+            get => _keyColumnName;
+            set => SetProperty(ref _keyColumnName, value);
+        }
+
+        public Array EditModes => Enum.GetValues(typeof(XMLEditMode));
 
         //==============================================================================================================================================================================================================
 
@@ -206,23 +231,8 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 
             XMLEditSheetName = "Sheet1";
             XMLEditFileExPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles/ExcelTest.xlsx";
-            XMLEditFileXmlPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles/Destination.xml";
+            XMLEditFileXmlPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles/Destination_Generated.xml";
             XMLEditTargetPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles";
-
-
-            //XMLEditSheetName = "Sheet1";
-            //XMLEditFileExPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\2/Destination generation_new parameter 1.xlsx";
-            //XMLEditFileXmlPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\2/Newparametertest1.xml";
-            //XMLEditTargetPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\2";
-
-
-            //XMLEditSheetName = "Coordinates";
-            //XMLEditFileExPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\1/asd.xlsx";
-            //XMLEditFileXmlPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\1/additionalobjectstest.xml";
-            //XMLEditTargetPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\1";
-
-
-
             ReplaceSelectionCommand = new RelayCommand(_ => ReplaceSelection());
             GenerateCommand = new RelayCommand(async _ => await GenerateFromTemplateAsync());
             SaveGeneratedCommand = new RelayCommand(_ => SaveGeneratedXml());
@@ -392,31 +402,72 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 
             // collect excel rows from your DataTable/DataView into a simpler structure
             var excelRows = CollectExcelRows();
+            // Build key definition only for Update mode
+            XMLKeyDefinition? keyDef = null;
+            if (EditMode == XMLEditMode.Update)
+            {
+                // Infer the element name from the template's root tag
+                string elementName;
+                try
+                {
+                    elementName = XElement.Parse(TemplateXml).Name.LocalName;
+                }
+                catch
+                {
+                    _logger.Warn("Template XML is not a valid element.");
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(KeyAttributeName))
+                { _logger.Warn("Key attribute name is empty."); return; }
+
+                if (string.IsNullOrWhiteSpace(KeyColumnName))
+                { _logger.Warn("Key column name is empty."); return; }
+
+                // Optional sanity check: first row contains the key column?
+                if (excelRows.Any() && !excelRows.First().ContainsKey(KeyColumnName))
+                {
+                    _logger.Warn($"Excel rows do not contain key column '{KeyColumnName}'.");
+                    return;
+                }
+
+                keyDef = new XMLKeyDefinition
+                {
+                    ElementName = elementName,
+                    AttributeName = KeyAttributeName,
+                    KeyColumnName = KeyColumnName
+                };
+            }
 
             var finalXml = await Task.Run(() =>
             {
                 // load document here in VM or (even better) inside the service — both ok for now
                 var doc = XDocument.Load(XMLEditFileXmlPath, LoadOptions.PreserveWhitespace);
 
-                // choose mode – right now you only have Generate
-                var mode = XMLEditMode.Generate;
-
                 // call application service to do the heavy XML work
                 var updatedDoc = _xmlNodeEditService.Apply(
-                    doc,
-                    SelectedBlock.NodeId,
-                    TemplateXml,
-                    excelRows,
-                    mode,
-                    keyDef: null);
+                doc,
+                SelectedBlock.NodeId,
+                TemplateXml,
+                excelRows,
+                EditMode,
+                keyDef
+                );
 
+                /*
                 // return as string
                 using var sw = new StringWriterWithEncoding(Encoding.UTF8);
                 // keep declaration if service didn’t set it
                 if (updatedDoc.Declaration == null)
                     updatedDoc.Declaration = new XDeclaration("1.0", "utf-8", null);
                 updatedDoc.Save(sw, SaveOptions.DisableFormatting);
-                return sw.ToString();
+                return sw.ToString();*/
+
+                // For preview we don't need infra helpers; ToString is fine.
+                if (updatedDoc.Declaration == null)
+                    updatedDoc.Declaration = new XDeclaration("1.0", "utf-8", null);
+
+                return updatedDoc.ToString(SaveOptions.DisableFormatting);
             });
 
             GeneratedXmlPreview = finalXml;
@@ -476,163 +527,6 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             {
                 _logger.Error("Failed to save generated XML.", ex);
             }
-        }
-
-        /*
-        private async Task GenerateFromTemplateAsync()
-        {
-            // need template
-            if (string.IsNullOrWhiteSpace(TemplateXml))
-            {
-                _logger.Warn("No template XML to generate from.");
-                return;
-            }
-
-            // need selected node info
-            if (SelectedBlock == null)
-            {
-                _logger.Warn("No XML node selected.");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(XMLEditFileXmlPath) || !File.Exists(XMLEditFileXmlPath))
-            {
-                _logger.Warn("XML source file not found.");
-                return;
-            }
-
-            var result = await Task.Run(() =>
-            {
-                // load full source doc
-                var doc = XDocument.Load(XMLEditFileXmlPath, LoadOptions.PreserveWhitespace);
-                var root = doc.Root ?? throw new InvalidOperationException("XML has no root.");
-
-                // Keep the declaration (if present)
-                var declaration = doc.Declaration != null
-                    ? new XDeclaration(doc.Declaration.Version, doc.Declaration.Encoding, doc.Declaration.Standalone)
-                    : new XDeclaration("1.0", "utf-8", null);
-
-                // find the element we originally selected (by our path-id)
-                var originalElem = FindByGeneratedId(root, SelectedBlock.NodeId, "");
-                if (originalElem == null)
-                    throw new InvalidOperationException("Selected element not found in source XML.");
-
-                // we will build replacement nodes here
-                var replacementNodes = new List<object>();
-
-                foreach (System.Data.DataRowView rowView in TableView)
-                {
-                    // turn DataRow into dictionary column -> value
-                    var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    foreach (System.Data.DataColumn col in rowView.Row.Table.Columns)
-                    {
-                        var valObj = rowView.Row[col];
-                        var val = valObj == DBNull.Value ? string.Empty : valObj?.ToString() ?? string.Empty;
-                        dict[col.ColumnName] = val;
-                    }
-
-                    // apply placeholders to template
-                    var filledXml = ApplyPlaceholders(TemplateXml, dict);
-
-                    // parse to XElement (will throw if user broke XML – good for PoC)
-                    var newElem = XElement.Parse(filledXml, LoadOptions.PreserveWhitespace);
-
-                    // add a newline + some indent BEFORE every element (optional but nicer)
-                    replacementNodes.Add(new XText(Environment.NewLine + "  "));
-                    replacementNodes.Add(newElem);
-                }
-
-                // optional: final newline after the last one to match style
-                replacementNodes.Add(new XText(Environment.NewLine + "  "));
-
-                // replace the original element IN PLACE with all generated ones
-                originalElem.ReplaceWith(replacementNodes.ToArray());
-
-                // Reassign declaration before returning string
-                doc.Declaration = declaration;
-
-                // Convert to string with declaration included
-                using var sw = new StringWriterWithEncoding(Encoding.UTF8);
-                doc.Save(sw, SaveOptions.DisableFormatting);
-                return sw.ToString();
-            });
-
-            GeneratedXmlPreview = result;
-            _logger.Info("XML generated from template.");
-        }
-
-        private string ApplyPlaceholders(string template, Dictionary<string, string> values)
-        {
-            var output = template;
-            foreach (var kvp in values)
-            {
-                // placeholder is e.g. [groupname]
-                var placeholder = $"[{kvp.Key}]";
-                output = output.Replace(placeholder, kvp.Value ?? string.Empty);
-            }
-            return output;
-        }
-
-        private XElement? FindByGeneratedId(XElement element, string targetId, string parentPath)
-        {
-            // build current path
-            var index = 0;
-            if (element.Parent != null)
-            {
-                var same = element.Parent.Elements(element.Name).ToList();
-                index = same.IndexOf(element);
-            }
-
-            var currentPath = $"{parentPath}/{element.Name.LocalName}[{index}]";
-
-            if (currentPath == targetId)
-                return element;
-
-            foreach (var child in element.Elements())
-            {
-                var found = FindByGeneratedId(child, targetId, currentPath);
-                if (found != null)
-                    return found;
-            }
-
-            return null;
-        }
-
-        // ===================== SAVE (separate button) =====================
-        private void SaveGeneratedXml()
-        {
-            // nothing to save
-            if (string.IsNullOrWhiteSpace(GeneratedXmlPreview))
-            {
-                _logger.Warn("No generated XML to save. Click Generate first.");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(XMLEditTargetPath))
-            {
-                _logger.Warn("Target path is empty.");
-                return;
-            }
-
-            try
-            {
-                if (!Directory.Exists(XMLEditTargetPath))
-                    Directory.CreateDirectory(XMLEditTargetPath);
-
-                var originalName = Path.GetFileNameWithoutExtension(XMLEditFileXmlPath);
-                var outputFileName = originalName + "_generated.xml";
-                var outputFullPath = Path.Combine(XMLEditTargetPath, outputFileName);
-
-                File.WriteAllText(outputFullPath, GeneratedXmlPreview, Encoding.UTF8);
-
-                _logger.Info($"Generated XML saved to: {outputFullPath}");
-            }
-            catch (Exception ex)
-            {
-                _logger.Error("Failed to save generated XML.", ex);
-            }
-        }
-        */
-        //==============================================================================================================================================================================================================
+        }       
     }
 }

@@ -113,35 +113,24 @@ namespace ToolBoxV2.Application.XMLEditor
 
             // Take a snapshot of children of that same name (e.g. all <group>)
             var candidates = parent.Elements()
-                                   .Where(e => e.Name.LocalName == keyDef.ElementName)
-                                   .ToList();
+                       .Where(e => e.Name.LocalName.Equals(keyDef.ElementName, StringComparison.Ordinal))
+                       .ToList();
 
             foreach (var row in excelRows)
             {
-                // Excel key
-                if (!row.TryGetValue("key", out var excelKey) || string.IsNullOrEmpty(excelKey))
+                if (!row.TryGetValue(keyDef.KeyColumnName, out var excelKey) || string.IsNullOrWhiteSpace(excelKey))
                     continue;
 
-                // find corresponding existing xml element
                 var match = candidates.FirstOrDefault(e =>
                 {
                     var attr = e.Attribute(keyDef.AttributeName);
-                    return attr != null && string.Equals(attr.Value, excelKey, StringComparison.OrdinalIgnoreCase);
+                    return attr != null && attr.Value.Equals(excelKey, StringComparison.OrdinalIgnoreCase);
                 });
 
-                if (match == null)
-                {
-                    // optional: if not found, we could create new here
-                    continue;
-                }
+                if (match == null) continue;
 
-                // We have the existing element, now we need to apply the other placeholders.
-                // Easiest way (for now): re-generate full element from template,
-                // but KEEP the position by ReplaceWith
                 var filled = _templateService.ApplyPlaceholders(templateXml, row);
                 var newElem = XElement.Parse(filled, LoadOptions.PreserveWhitespace);
-
-                // replace IN PLACE
                 match.ReplaceWith(new XText(Environment.NewLine + "  "), newElem);
             }
 

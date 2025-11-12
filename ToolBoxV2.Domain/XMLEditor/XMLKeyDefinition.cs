@@ -13,5 +13,7 @@ namespace ToolBoxV2.Domain.XMLEditor
 
         // e.g. "name" – the attribute that will have [key] in the template
         public string AttributeName { get; set; }
+
+        public string KeyColumnName { get; init; } = "Key";
     }
 }
