@@ -10,8 +10,34 @@ using ToolBoxV2.Application.Common;
 
 namespace ToolBoxV2.Infrastracture.Excel
 {
+    /// <summary>
+    /// Concrete implementation of <see cref="IExcelReader"/> that uses
+    /// the ClosedXML library to read Excel files.
+    ///
+    /// Layer  role:
+    /// Infrastructure layer — performs the actual IO and file parsing,
+    /// while exposing the Application-defined abstraction (<see cref="IExcelReader"/>)
+    /// so that upper layers (e.g., ViewModels) remain library-agnostic.
+    ///
+    /// Behavior:
+    /// - Reads a specified worksheet row-by-row.  
+    /// - Maps cell values to header names from the header row.  
+    /// - Yields <see cref="ExcelRow"/> objects asynchronously, allowing
+    ///   the UI to remain responsive during long imports.  
+    /// - Automatically filters columns if <see cref="ExcelReadRequest.ExpectedColumns"/> is provided.
+    /// </summary>
+    
     public class ClosedXMLExcelReader : IExcelReader
     {
+        /// <summary>
+        /// Asynchronously reads rows from the specified Excel sheet and yields
+        /// <see cref="ExcelRow"/> objects containing key-value pairs (column name → cell value).
+        /// </summary>
+        /// Params:
+        /// request - Configuration describing which file, sheet, and header row to read.
+        /// cancellationToke - Optional cancellation token for responsive cancellation
+        /// returns
+        /// An async stream of <see cref="ExcelRow"/> values
         public async IAsyncEnumerable<ExcelRow> ReadAsync(
           ExcelReadRequest request,
           [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -65,7 +91,12 @@ namespace ToolBoxV2.Infrastracture.Excel
                 await Task.Yield();
             }
         }
-
+        
+        // Builds a mapping between column headers (names) and their column numbers
+        // in the Excel sheet.  
+        // - If expectedColumns is empty, all non-empty headers are included.  
+        // - If not empty, only columns explicitly listed are mapped.
+         
         private Dictionary<string, int> BuildColumnMap(IXLRow headerRow, IReadOnlyList<string> expectedColumns)
         {
             var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);

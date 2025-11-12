@@ -7,10 +7,24 @@ using System.Xml.Linq;
 using ToolBoxV2.Application.XMLEditor;
 using ToolBoxV2.Domain.XMLEditor;
 
-namespace ToolBoxV2.Infrastracture.XMLReader
+namespace ToolBoxV2.Infrastracture.XMLEditor
 {
+    /// <summary>
+    /// Concrete implementation of <see cref="IXMLReaderService"/> that loads XML
+    /// documents from disk and converts them into structured models.
+    ///
+    /// Layer role:
+    /// Infrastructure layer — provides the concrete "how" for XML parsing,
+    /// while the Application layer defines the *what* (via <see cref="IXMLReaderService"/>). 
+    /// </summary>
     public class XMLReaderService : IXMLReaderService
     {
+        /// <summary>
+        /// Loads the given XML file and converts it into a recursive <see cref="XMLNodeModel"/>
+        /// tree, preserving element order and whitespace.
+        /// </summary>        
+        /// returns The root <see cref="XMLNodeModel"/> representing the XML structure.
+        
         public XMLNodeModel LoadXmlAsTree(string filePath)
         {
             if (!File.Exists(filePath))
@@ -23,11 +37,26 @@ namespace ToolBoxV2.Infrastracture.XMLReader
             return ConvertToModel(root, "");
         }
 
+        /// <summary>
+        /// Extracts a specific XML node by its generated ID and returns it as a raw block.
+        /// 
+        /// Why this method re-reads the file:
+        /// The XML is read again instead of being reused from memory to ensure:        
+        ///   Freshness – the file might have been edited or generated externally since last load.
+        ///   Isolation – avoids keeping large XDocument trees alive in memory for the whole session.
+        ///   Simplicity – prevents accidental side effects if other parts of the app hold a modified in-memory copy.        
+        /// In practice, reloading is inexpensive for small-to-medium XMLs (HMI screens, alarms, etc.)
+        /// and guarantees consistency between the UI tree and file content.        
+        /// returns
+        /// An <see cref="XMLBlock"/> containing the node ID and its raw, compact XML markup.
+        
+
         public XMLBlock GetBlockById(string filePath, string nodeId)
         {
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("XML file not found", filePath);
 
+            // Load fresh copy from disk — see comment above for reasoning.
             var doc = XDocument.Load(filePath, LoadOptions.PreserveWhitespace);
             var root = doc.Root ?? throw new InvalidOperationException("XML has no root element.");
 
@@ -42,10 +71,12 @@ namespace ToolBoxV2.Infrastracture.XMLReader
                 RawXml = element.ToString(SaveOptions.DisableFormatting)
             };
         }
-
+        // ==========================================================
+        // Recursive conversion from XElement -> XMLNodeModel (Domain)
+        // ==========================================================
         private XMLNodeModel ConvertToModel(XElement element, string parentPath)
         {
-            // We make ids stable by index among siblings with the same name
+            // Generate a stable unique ID using sibling index within same-named elements
             var index = GetIndexAmongSameNamedSiblings(element);
             var currentPath = $"{parentPath}/{element.Name.LocalName}[{index}]";
 
@@ -83,6 +114,10 @@ namespace ToolBoxV2.Infrastracture.XMLReader
             return model;
         }
 
+        // ==========================================================
+        // Helper: find element by generated path-based ID
+        // ==========================================================
+
         private XElement? FindByGeneratedId(XElement element, string targetId, string parentPath)
         {
             var index = GetIndexAmongSameNamedSiblings(element);
@@ -100,7 +135,9 @@ namespace ToolBoxV2.Infrastracture.XMLReader
 
             return null;
         }
-
+        // ==========================================================
+        // Helper: get sibling index among same-named elements
+        // ==========================================================
         private int GetIndexAmongSameNamedSiblings(XElement element)
         {
             if (element.Parent == null)

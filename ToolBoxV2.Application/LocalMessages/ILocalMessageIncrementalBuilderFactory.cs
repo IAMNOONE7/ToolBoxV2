@@ -19,9 +19,8 @@ namespace ToolBoxV2.Application.LocalMessages
     /// </summary>
     public interface ILocalMessageIncrementalBuilderFactory
     {
-        /// <summary>
-        /// Creates a new instance of a builder that can incrementally build LocalMessages.
-        /// </summary>
+        
+        // Creates a new instance of a builder that can incrementally build LocalMessages.     
         ILocalMessageIncrementalBuilder Create();
     }
 }

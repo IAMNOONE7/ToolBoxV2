@@ -17,7 +17,10 @@ namespace ToolBoxV2.Infrastracture
         {
             services.AddSingleton<IDiagnosticLogger, SimpleDiagnosticLogger>();
             services.AddSingleton<IExcelReader, ClosedXMLExcelReader>();
-            services.AddSingleton<IXMLReaderService, XMLReader.XMLReaderService>();
+            services.AddSingleton<IXMLReaderService, XMLEditor.XMLReaderService>();
+            services.AddSingleton<IXMLExportService, XMLExportService>();
+            services.AddSingleton<IXMLNodeEditService, XMLNodeEditService>();
+            services.AddSingleton<IXMLTemplateService, XMLTemplateService>();
             // later: services.AddSingleton<ILocExporter, LocExporter>();
 
             return services;

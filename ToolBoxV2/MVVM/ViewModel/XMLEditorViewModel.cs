@@ -15,8 +15,9 @@ using ToolBoxV2.Application.LocalMessages;
 using ToolBoxV2.Application.XMLEditor;
 using ToolBoxV2.Domain.XMLEditor;
 using ToolBoxV2.Infrastracture.Common;
-using ToolBoxV2.Infrastracture.XMLReader;
+using ToolBoxV2.Infrastracture.XMLEditor;
 using ToolBoxV2.Presentation.WPF.Core;
+using static ToolBoxV2.Application.XMLEditor.IXMLNodeEditService;
 
 namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 {
@@ -184,15 +185,23 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
         public ICommand GenerateCommand { get; }
         public ICommand SaveGeneratedCommand { get; }
 
+        private readonly IXMLNodeEditService _xmlNodeEditService;
+        private readonly IXMLTemplateService _xmlTemplateService;
+        private readonly IXMLExportService _xmlExportService;
+
+
         //==============================================================================================================================================================================================================
 
         public ICommand ImportCommand { get; }
 
-        public XMLEditorViewModel(IExcelReader excelReader, IDiagnosticLogger logger, IXMLReaderService xmlReaderService)
+        public XMLEditorViewModel(IExcelReader excelReader, IDiagnosticLogger logger, IXMLReaderService xmlReaderService, IXMLNodeEditService xmlNodeEditService, IXMLTemplateService xmlTemplateService, IXMLExportService xmlExportService)
         {
             _excelReader = excelReader;
             _logger = logger;
             _xmlReaderService = xmlReaderService;
+            _xmlNodeEditService = xmlNodeEditService;
+            _xmlTemplateService = xmlTemplateService;
+            _xmlExportService = xmlExportService;
 
 
             XMLEditSheetName = "Sheet1";
@@ -201,11 +210,21 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             XMLEditTargetPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles";
 
 
-           
+            //XMLEditSheetName = "Sheet1";
+            //XMLEditFileExPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\2/Destination generation_new parameter 1.xlsx";
+            //XMLEditFileXmlPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\2/Newparametertest1.xml";
+            //XMLEditTargetPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\2";
+
+
+            //XMLEditSheetName = "Coordinates";
+            //XMLEditFileExPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\1/asd.xlsx";
+            //XMLEditFileXmlPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\1/additionalobjectstest.xml";
+            //XMLEditTargetPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles\\1";
+
+
 
             ReplaceSelectionCommand = new RelayCommand(_ => ReplaceSelection());
             GenerateCommand = new RelayCommand(async _ => await GenerateFromTemplateAsync());
-            // separate button: save current preview
             SaveGeneratedCommand = new RelayCommand(_ => SaveGeneratedXml());
 
 
@@ -307,6 +326,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 
         //==============================================================================================================================================================================================================
 
+        
         // called from code-behind when a TreeView node is selected
         public void OnNodeSelected(XMLNodeModel node)
         {
@@ -349,6 +369,116 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             SelectionLength = 0;
         }
 
+
+        private async Task GenerateFromTemplateAsync()
+        {
+            if (string.IsNullOrWhiteSpace(TemplateXml))
+            {
+                _logger.Warn("No template XML to generate from.");
+                return;
+            }
+
+            if (SelectedBlock == null)
+            {
+                _logger.Warn("No XML node selected.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(XMLEditFileXmlPath) || !File.Exists(XMLEditFileXmlPath))
+            {
+                _logger.Warn("XML source file not found.");
+                return;
+            }
+
+            // collect excel rows from your DataTable/DataView into a simpler structure
+            var excelRows = CollectExcelRows();
+
+            var finalXml = await Task.Run(() =>
+            {
+                // load document here in VM or (even better) inside the service — both ok for now
+                var doc = XDocument.Load(XMLEditFileXmlPath, LoadOptions.PreserveWhitespace);
+
+                // choose mode – right now you only have Generate
+                var mode = XMLEditMode.Generate;
+
+                // call application service to do the heavy XML work
+                var updatedDoc = _xmlNodeEditService.Apply(
+                    doc,
+                    SelectedBlock.NodeId,
+                    TemplateXml,
+                    excelRows,
+                    mode,
+                    keyDef: null);
+
+                // return as string
+                using var sw = new StringWriterWithEncoding(Encoding.UTF8);
+                // keep declaration if service didn’t set it
+                if (updatedDoc.Declaration == null)
+                    updatedDoc.Declaration = new XDeclaration("1.0", "utf-8", null);
+                updatedDoc.Save(sw, SaveOptions.DisableFormatting);
+                return sw.ToString();
+            });
+
+            GeneratedXmlPreview = finalXml;
+            _logger.Info("XML generated from template (via service).");
+        }
+
+        // helper: turn your DataView into IEnumerable<Dictionary<string,string>>
+        private IEnumerable<Dictionary<string, string>> CollectExcelRows()
+        {
+            var list = new List<Dictionary<string, string>>();
+
+            if (TableView == null)
+                return list;
+
+            foreach (DataRowView rowView in TableView)
+            {
+                var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (DataColumn col in rowView.Row.Table.Columns)
+                {
+                    var valObj = rowView.Row[col];
+                    var val = valObj == DBNull.Value ? string.Empty : valObj?.ToString() ?? string.Empty;
+                    dict[col.ColumnName] = val;
+                }
+                list.Add(dict);
+            }
+
+            return list;
+        }
+
+        private void SaveGeneratedXml()
+        {
+            if (string.IsNullOrWhiteSpace(GeneratedXmlPreview))
+            {
+                _logger.Warn("No generated XML to save. Click Generate first.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(XMLEditTargetPath))
+            {
+                _logger.Warn("Target path is empty.");
+                return;
+            }
+
+            try
+            {
+                // parse the preview back to XDocument
+                var doc = XDocument.Parse(GeneratedXmlPreview, LoadOptions.PreserveWhitespace);
+
+                var baseName = Path.GetFileNameWithoutExtension(XMLEditFileXmlPath) + "_generated";
+
+                // delegate to service
+                _xmlExportService.Save(doc, XMLEditTargetPath, baseName);
+
+                _logger.Info("Generated XML saved via export service.");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Failed to save generated XML.", ex);
+            }
+        }
+
+        /*
         private async Task GenerateFromTemplateAsync()
         {
             // need template
@@ -502,7 +632,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
                 _logger.Error("Failed to save generated XML.", ex);
             }
         }
-
+        */
         //==============================================================================================================================================================================================================
     }
 }

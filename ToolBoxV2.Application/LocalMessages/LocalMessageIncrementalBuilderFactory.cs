@@ -16,6 +16,7 @@ namespace ToolBoxV2.Application.LocalMessages
     /// </summary>
     public class LocalMessageIncrementalBuilderFactory : ILocalMessageIncrementalBuilderFactory
     {
+        // Creates a new, empty incremental builder ready to process rows.
         public ILocalMessageIncrementalBuilder Create()
         {
             // Always return a new builder — ensures no shared state between imports
