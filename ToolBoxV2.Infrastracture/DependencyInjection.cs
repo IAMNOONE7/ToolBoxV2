@@ -5,9 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ToolBoxV2.Application.Common;
+using ToolBoxV2.Application.LocalMessages;
 using ToolBoxV2.Application.XMLEditor;
 using ToolBoxV2.Infrastracture.Diagnostics;
 using ToolBoxV2.Infrastracture.Excel;
+using ToolBoxV2.Infrastracture.LocalMessages;
 
 namespace ToolBoxV2.Infrastracture
 {
@@ -21,6 +23,7 @@ namespace ToolBoxV2.Infrastracture
             services.AddSingleton<IXMLExportService, XMLExportService>();
             services.AddSingleton<IXMLNodeEditService, XMLNodeEditService>();
             services.AddSingleton<IXMLTemplateService, XMLTemplateService>();
+            services.AddSingleton<ILocalMessageExportService, LocalMessageExportService>();
             // later: services.AddSingleton<ILocExporter, LocExporter>();
 
             return services;

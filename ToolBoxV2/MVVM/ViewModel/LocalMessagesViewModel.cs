@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,12 +12,13 @@ using ToolBoxV2.Application.LocalMessages;
 using ToolBoxV2.Domain.LocalMessages;
 using ToolBoxV2.Presentation.WPF.Core;
 using ToolBoxV2.Presentation.WPF.Properties;
+using ToolBoxV2.Presentation.WPF.Services;
 
 namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 {
     public class LocalMessagesViewModel : ObservableObject
     {
-        private string _localMessTargetPath;
+        private string _localMessTargetPath = Properties.Settings.Default.LocalMessTargetPath;
         public string LocalMessTargetPath
         {
             get => _localMessTargetPath;
@@ -30,7 +32,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             }
         }
 
-        private string _localMessFilePath;
+        private string _localMessFilePath = Properties.Settings.Default.LocalMessFilePath;
         public string LocalMessFilePath
         {
             get => _localMessFilePath;
@@ -44,7 +46,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             }
         }
 
-        private string _localMessSheetName;
+        private string _localMessSheetName = Properties.Settings.Default.LocalMessSheetName;
         public string LocalMessSheetName
         {
             get => _localMessSheetName;
@@ -58,7 +60,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             }
         }
 
-        private int _localMessHeaderRow;
+        private int _localMessHeaderRow = Properties.Settings.Default.LocalMessHeaderRow;
         public int LocalMessHeaderRow
         {
             get => _localMessHeaderRow;
@@ -112,50 +114,27 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
         public ObservableCollection<LocalMessageItem> Items { get; } = new();
         public ICommand ImportCommand { get; }
 
-        public LocalMessagesViewModel(IExcelReader excelReader, IDiagnosticLogger logger, ILocalMessageIncrementalBuilderFactory builderFactory)
+        private readonly IFileDialogService _fileDialogService;
+        private readonly ILocalMessageExportService _messageExportService;
+        public ICommand BrowseExcelCommand { get; }        
+        public ICommand BrowseFolderCommand { get; }
+
+        public ICommand GenerateLocFilesCommand { get; }
+
+        public LocalMessagesViewModel(IExcelReader excelReader, IDiagnosticLogger logger, ILocalMessageIncrementalBuilderFactory builderFactory, IFileDialogService fileDialogService, ILocalMessageExportService messageExportService)
         {
             _excelReader = excelReader;
             _logger = logger;
             _builderFactory = builderFactory;
+            _fileDialogService = fileDialogService;
+            _messageExportService = messageExportService;
 
-            //LocalMessSheetName = Properties.Settings.Default.LocalMessSheetName;
-            //LocalMessFilePath = Properties.Settings.Default.LocalMessFilePath;
-            //LocalMessTargetPath = Properties.Settings.Default.LocalMessTargetPath;
 
-            LocalMessSheetName = "List1";
-            LocalMessFilePath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2/ExcelTest.xlsx";
-            LocalMessTargetPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2\\TestFolder";
             ImportCommand = new RelayCommand(async _ => await ImportAsync(), _ => !IsLoading);
-        }
-
-        private void SelectFile()
-        {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "Select Excel File",
-                Filter = "Excel Files (*.xlsx;*.xlsm)|*.xlsx;*.xlsm|All Files (*.*)|*.*"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                LocalMessFilePath = dialog.FileName;
-                _logger.Info($"Selected file: {LocalMessFilePath}");                   
-            }
-        }
-
-        private void SelectTargetPath()
-        {
-            var dialog = new Microsoft.Win32.OpenFolderDialog
-            {
-                Title = "Select Target Path"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                LocalMessTargetPath = dialog.FolderName;
-                _logger.Info($"Selected Target Path: {LocalMessTargetPath}");                
-            }
-        }
+            BrowseExcelCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.ExcelFile, p => LocalMessFilePath = p));            
+            BrowseFolderCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.Folder, p => LocalMessTargetPath = p));
+            GenerateLocFilesCommand = new RelayCommand(async _ => await GenerateLocFilesAsync());
+        }      
 
         private async Task ImportAsync()
         {
@@ -220,6 +199,56 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             {
                 IsLoading = false;
             }           
+        }
+
+        private async Task BrowseAndAssignAsync(FileBrowseTarget target, Action<string> assignPath)
+        {
+            var path = await _fileDialogService.BrowseAsync(target);
+
+            if (!string.IsNullOrWhiteSpace(path))
+                assignPath(path);
+        }
+
+        private async Task GenerateLocFilesAsync()
+        {
+            if (string.IsNullOrWhiteSpace(LocalMessTargetPath) || !Directory.Exists(LocalMessTargetPath))
+            {
+                _logger.Warn("Target path is not valid.");
+                return;
+            }
+
+            if (LM == null || LM.Count == 0)
+            {
+                _logger.Warn("No Local Messages to export.");
+                return;
+            }           
+
+            try
+            {
+                var result = await _messageExportService.ExportAsync(LocalMessTargetPath, LM);
+
+                if (result.FailureCount > 0 && result.SuccessCount == 0)
+                {
+                    _logger.Warn("Local Message generation failed.");
+                }
+                else if (result.FailureCount > 0)
+                {
+                    _logger.Warn(
+                        $"Local Message generation completed with issues. Success: {result.SuccessCount}, Failed: {result.FailureCount}.");
+                }
+                else
+                {
+                    _logger.Info($"Local Message generation completed. Files: {result.SuccessCount}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Unexpected error during Local Message generation.", ex);
+            }
+            finally
+            {
+                
+            }
         }
     }
 }

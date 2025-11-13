@@ -8,22 +8,54 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="13*"/>
-            <RowDefinition Height="72*"/>
-            <RowDefinition Height="15*"/>
+            <RowDefinition Height="25*"/>
+            <RowDefinition Height="65*"/>
+            <RowDefinition Height="10*"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="20*"/>
-            <ColumnDefinition Width="65*"/>
-            <ColumnDefinition Width="15*"/>
+            <ColumnDefinition Width="25*"/>
+            <ColumnDefinition Width="75*"/>            
         </Grid.ColumnDefinitions>
 
-        <Button Content="Load Data"  
-                Margin="5,20,10,5" 
-                Grid.Row="0"     
-                IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"
-                Command="{Binding ImportCommand}" />
+        <Grid Grid.Row="0" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>                
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="7*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding LocalMessFilePath}" MinWidth="50" Margin="8" Grid.Column="0"/>
+                <Button  Command="{Binding BrowseExcelCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+            </Grid>          
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="7*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding LocalMessTargetPath}" MinWidth="50" Margin="8" Grid.Column="0"/>
+                <Button Command="{Binding BrowseFolderCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+            </Grid>
+
+            <TextBox Text="{Binding LocalMessSheetName}" Margin="8" Grid.Row="2"/>
+            <TextBox Text="{Binding LocalMessHeaderRow}" Margin="8" Grid.Row="3"/>
+
+            <Button Content="Load Data"  
+                    Margin="8" 
+                    Grid.Row="4"     
+                    IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"
+                    Command="{Binding ImportCommand}" />
+        </Grid>
+
+        
 
         <TextBlock Text="Loading..." Grid.Column="1"  
                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"

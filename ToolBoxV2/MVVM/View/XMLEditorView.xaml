@@ -121,7 +121,9 @@
                        AutoGenerateColumns="True"
                        IsReadOnly="False" 
                        MinWidth="200"
-                       Grid.Column="0"/>
+                       Grid.Column="0"
+                       HorizontalScrollBarVisibility="Auto"
+                       VerticalScrollBarVisibility="Auto"/>
 
             <TreeView Margin="8"
                        ItemsSource="{Binding RootNode.Children}"
