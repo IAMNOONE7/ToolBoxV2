@@ -6,7 +6,7 @@
     <FontFamily x:Key="FontMonospace">Consolas</FontFamily>
     <FontFamily x:Key="FontBold">Segoe UI Semibold</FontFamily>
 
-
+    <sys:Double x:Key="FontSizeExtraSmall">10</sys:Double>
     <sys:Double x:Key="FontSizeSmall">12</sys:Double>
     <sys:Double x:Key="FontSizeBase">14</sys:Double>
     <sys:Double x:Key="FontSizeMedium">16</sys:Double>

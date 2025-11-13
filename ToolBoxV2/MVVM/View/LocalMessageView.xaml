@@ -4,26 +4,23 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.View"
+             xmlns:meaning ="clr-namespace:ToolBoxV2.Presentation.WPF.Helpers"
              mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="25*"/>
-            <RowDefinition Height="65*"/>
-            <RowDefinition Height="10*"/>
+            <RowDefinition Height="35*"/>
+            <RowDefinition Height="65*"/>            
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="25*"/>
-            <ColumnDefinition Width="75*"/>            
+            <ColumnDefinition Width="35*"/>
+            <ColumnDefinition Width="65*"/>            
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Row="0" Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>                
+                <RowDefinition Height="*"/>                              
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
@@ -31,8 +28,8 @@
                     <ColumnDefinition Width="7*"/>
                     <ColumnDefinition Width="3*"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Text="{Binding LocalMessFilePath}" MinWidth="50" Margin="8" Grid.Column="0"/>
-                <Button  Command="{Binding BrowseExcelCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+                <TextBox Text="{Binding LocalMessFilePath}" MinWidth="50" Margin="1" Grid.Column="0" meaning:TextBoxHelper.Meaning="Excel File Path" Style="{StaticResource TextBox1Theme}"/>
+                <Button  Command="{Binding BrowseExcelCommand}" Margin="1" MinWidth="20" Grid.Column="1" Style="{StaticResource Button_Theme}"/>
             </Grid>          
 
             <Grid Grid.Row="1">
@@ -40,18 +37,27 @@
                     <ColumnDefinition Width="7*"/>
                     <ColumnDefinition Width="3*"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Text="{Binding LocalMessTargetPath}" MinWidth="50" Margin="8" Grid.Column="0"/>
-                <Button Command="{Binding BrowseFolderCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+                <TextBox Text="{Binding LocalMessTargetPath}" MinWidth="50" Margin="1" Grid.Column="0" meaning:TextBoxHelper.Meaning="Target Path" Style="{StaticResource TextBox1Theme}"/>
+                <Button Command="{Binding BrowseFolderCommand}" Margin="1" MinWidth="20" Grid.Column="1" Style="{StaticResource Button_Theme}"/>
             </Grid>
 
-            <TextBox Text="{Binding LocalMessSheetName}" Margin="8" Grid.Row="2"/>
-            <TextBox Text="{Binding LocalMessHeaderRow}" Margin="8" Grid.Row="3"/>
+            
+        </Grid>
+        <Grid Grid.Column="1" Margin="10,0,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>               
+            </Grid.RowDefinitions>
+            <TextBox Text="{Binding LocalMessSheetName}" Margin="1" Grid.Row="0" meaning:TextBoxHelper.Meaning="Sheet Name" Style="{StaticResource TextBox1Theme}"/>
+            <TextBox Text="{Binding LocalMessHeaderRow}" Margin="1" Grid.Row="1" meaning:TextBoxHelper.Meaning="Header Row" Style="{StaticResource TextBox1Theme}"/>
 
             <Button Content="Load Data"  
                     Margin="8" 
-                    Grid.Row="4"     
+                    Grid.Row="2"     
                     IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"
-                    Command="{Binding ImportCommand}" />
+                    Command="{Binding ImportCommand}"
+                    Style="{StaticResource Button_Theme}"/>
         </Grid>
 
         
@@ -78,7 +84,8 @@
                         ScrollViewer.VerticalScrollBarVisibility="Auto"                        
                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
                         SelectedItem="{Binding SelectedLocalMessage, Mode=TwoWay}"
-                        ItemsSource="{Binding LM}">
+                        ItemsSource="{Binding LM}"
+                        Style="{StaticResource DataGridTheme1}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"  />
 
@@ -102,7 +109,8 @@
                         ScrollViewer.CanContentScroll="True"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"                        
                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                        ItemsSource="{Binding Items}">
+                        ItemsSource="{Binding Items}"
+                        Style="{StaticResource DataGridTheme1}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Index"  Binding="{Binding Index}" />
                     <DataGridTextColumn Header="Message" Width="*" Binding="{Binding Text}" />

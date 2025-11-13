@@ -7,7 +7,8 @@
              mc:Ignorable="d" 
              xmlns:domain="clr-namespace:ToolBoxV2.Domain.XMLEditor;assembly=ToolBoxV2.Domain"
              xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
-             xmlns:avalon ="clr-namespace:ToolBoxV2.Presentation.WPF.Helpers">
+             xmlns:avalon ="clr-namespace:ToolBoxV2.Presentation.WPF.Helpers"
+             xmlns:meaning ="clr-namespace:ToolBoxV2.Presentation.WPF.Helpers">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25*"/>
@@ -22,7 +23,7 @@
 
        
 
-        <Grid Grid.Row="0" Grid.Column="0">
+        <Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
@@ -37,8 +38,8 @@
                     <ColumnDefinition Width="7*"/>
                     <ColumnDefinition Width="3*"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Text="{Binding XMLEditFileExPath}" MinWidth="50" Margin="8" Grid.Column="0"/>
-                <Button  Command="{Binding BrowseExcelCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+                <TextBox Text="{Binding XMLEditFileExPath}" MinWidth="50" Margin="1" Grid.Column="0" meaning:TextBoxHelper.Meaning="Excel File Path" Style="{StaticResource TextBox1Theme}"/>
+                <Button  Command="{Binding BrowseExcelCommand}" Margin="1" MinWidth="20" Grid.Column="1" Style="{StaticResource Button_Theme}"/>
             </Grid>
 
             <Grid Grid.Row="1">
@@ -46,8 +47,8 @@
                     <ColumnDefinition Width="7*"/>
                     <ColumnDefinition Width="3*"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Text="{Binding XMLEditFileXmlPath}" MinWidth="50" Margin="8" Grid.Column="0"/>
-                <Button Command="{Binding BrowseXmlCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+                <TextBox Text="{Binding XMLEditFileXmlPath}" MinWidth="50" Margin="1" Grid.Column="0" meaning:TextBoxHelper.Meaning="XML File Path" Style="{StaticResource TextBox1Theme}"/>
+                <Button Command="{Binding BrowseXmlCommand}" Margin="1" MinWidth="20" Grid.Column="1" Style="{StaticResource Button_Theme}"/>
             </Grid>
 
             <Grid Grid.Row="2">
@@ -55,58 +56,58 @@
                     <ColumnDefinition Width="7*"/>
                     <ColumnDefinition Width="3*"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Text="{Binding XMLEditTargetPath}" MinWidth="50" Margin="8" Grid.Column="0"/>
-                <Button Command="{Binding BrowseFolderCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+                <TextBox Text="{Binding XMLEditTargetPath}" MinWidth="50" Margin="1" Grid.Column="0" meaning:TextBoxHelper.Meaning="Target Path" Style="{StaticResource TextBox1Theme}"/>
+                <Button Command="{Binding BrowseFolderCommand}" Margin="1" MinWidth="20" Grid.Column="1" Style="{StaticResource Button_Theme}"/>
             </Grid>
-            
-            <TextBox Text="{Binding XMLEditSheetName}" Margin="8" Grid.Row="3"/>
-            <TextBox Text="{Binding XMLEditHeaderRow}" Margin="8" Grid.Row="4"/>
+
+            <TextBox Text="{Binding XMLEditSheetName}" Margin="1" Grid.Row="3" meaning:TextBoxHelper.Meaning="Sheet Name" Style="{StaticResource TextBox1Theme}"/>
+            <TextBox Text="{Binding XMLEditHeaderRow}" Margin="1" Grid.Row="4" meaning:TextBoxHelper.Meaning="Header Row" Style="{StaticResource TextBox1Theme}"/>
             
             <Button Content="Load Data"  
-                     Margin="8" 
+                     Margin="2" 
                      Grid.Row="5"     
                      IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"
-                     Command="{Binding ImportCommand}" />
-        </Grid>
+                     Command="{Binding ImportCommand}" 
+                     Style="{StaticResource Button_Theme}"/>
+        </Grid>        
 
-        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical">
+        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Vertical">
             <TextBlock Text="Loading..." 
-                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
-                        Foreground="OrangeRed" />
+             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+             Foreground="OrangeRed" />
 
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Mode:" 
-                           Margin="8" 
-                           VerticalAlignment="Center"/>
+                Margin="8" 
+                VerticalAlignment="Center"/>
 
                 <ComboBox Width="160"
-                          Margin="8" 
-                          ItemsSource="{Binding EditModes}"
-                          SelectedItem="{Binding EditMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+               Margin="8" 
+               ItemsSource="{Binding EditModes}"
+               SelectedItem="{Binding EditMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
-            
+
 
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="Key column:" 
-                           Margin="8" 
-                           VerticalAlignment="Center"/>
-                
-                <ComboBox
-                         ItemsSource="{Binding Parameters}"       
-                         SelectedItem="{Binding SelectedKeyColumn}"
-                         Width="200"
-                         Margin="8" />
-            </StackPanel>
-        </StackPanel>
+                Margin="8" 
+                VerticalAlignment="Center"/>
 
-        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Vertical">
+                <ComboBox
+              ItemsSource="{Binding Parameters}"       
+              SelectedItem="{Binding SelectedKeyColumn}"
+              Width="200"
+              Margin="8" />
+            </StackPanel>
             <Button Content="Generate XML"                           
                 Command="{Binding GenerateCommand}"
-                Margin="0,12,0,0"/>
+                Margin="0,12,0,0"
+                Style="{StaticResource Button_Theme}"/>
 
             <Button Content="Save generated XML"                
                 Command="{Binding SaveGeneratedCommand}"
-                Margin="0,4,0,0"/>
+                Margin="0,4,0,0"
+                Style="{StaticResource Button_Theme}"/>
         </StackPanel>
 
         <Grid Grid.Row="0" Grid.Column="1">
@@ -122,7 +123,8 @@
                        MinWidth="200"
                        Grid.Column="0"
                        HorizontalScrollBarVisibility="Auto"
-                       VerticalScrollBarVisibility="Auto"/>
+                       VerticalScrollBarVisibility="Auto"
+                       Style="{StaticResource DataGridTheme1}"/>
 
             <TreeView Margin="8"
                        ItemsSource="{Binding RootNode.Children}"

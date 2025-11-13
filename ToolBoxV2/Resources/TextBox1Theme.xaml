@@ -14,7 +14,7 @@
 
                         <TextBlock 
                             Text= "{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(local:TextBoxHelper.Meaning)}"
-                                    FontSize="{StaticResource FontSizeSmall}"
+                                    FontSize="{StaticResource FontSizeExtraSmall}"
                                     Margin="10,0,0,2"
                                     Foreground="{StaticResource ColorMyColor1}"                                    
                                     VerticalAlignment="Center"
