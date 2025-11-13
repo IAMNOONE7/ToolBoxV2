@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Spreadsheet;
+using ICSharpCode.AvalonEdit.Folding;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,13 +18,14 @@ using ToolBoxV2.Domain.XMLEditor;
 using ToolBoxV2.Infrastracture.Common;
 using ToolBoxV2.Infrastracture.XMLEditor;
 using ToolBoxV2.Presentation.WPF.Core;
+using ToolBoxV2.Presentation.WPF.Services;
 using static ToolBoxV2.Application.XMLEditor.IXMLNodeEditService;
 
 namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 {
     public class XMLEditorViewModel : ObservableObject
     {
-        private string _xmlEditTargetPath;
+        private string _xmlEditTargetPath = Properties.Settings.Default.XMLEditTargetPath;
         public string XMLEditTargetPath
         {
             get => _xmlEditTargetPath;
@@ -37,7 +39,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             }
         }
 
-        private string _xmlEditFileExPath;
+        private string _xmlEditFileExPath = Properties.Settings.Default.XMLEditFileExPath;
         public string XMLEditFileExPath
         {
             get => _xmlEditFileExPath;
@@ -51,7 +53,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             }
         }
 
-        private string _xmlEditFileXmlPath;
+        private string _xmlEditFileXmlPath = Properties.Settings.Default.XMLEditFileXmlPath;
         public string XMLEditFileXmlPath
         {
             get => _xmlEditFileXmlPath;
@@ -65,7 +67,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             }
         }
 
-        private string _xmlEditSheetName;
+        private string _xmlEditSheetName = Properties.Settings.Default.XMLEditSheetName;
         public string XMLEditSheetName
         {
             get => _xmlEditSheetName;
@@ -79,7 +81,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             }
         }
 
-        private int _xmlEditHeaderRow;
+        private int _xmlEditHeaderRow = Properties.Settings.Default.XMLEditHeaderRow;
         public int XMLEditHeaderRow
         {
             get => _xmlEditHeaderRow;
@@ -130,7 +132,6 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             get => _tableView;
             private set => SetProperty(ref _tableView, value);
         }
-
 
         private readonly IExcelReader _excelReader;
         private readonly IDiagnosticLogger _logger;
@@ -185,8 +186,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
         public ICommand GenerateCommand { get; }
         public ICommand SaveGeneratedCommand { get; }
 
-        private readonly IXMLNodeEditService _xmlNodeEditService;
-        private readonly IXMLTemplateService _xmlTemplateService;
+        private readonly IXMLNodeEditService _xmlNodeEditService;        
         private readonly IXMLExportService _xmlExportService;
 
         // which operation to perform
@@ -205,37 +205,38 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             set => SetProperty(ref _keyAttributeName, value);
         }
 
-        // which Excel column contains the key value (must match a header in the sheet)
-        private string _keyColumnName = "Key";
-        public string KeyColumnName
+        private string _selectedKeyColumn;
+        public string SelectedKeyColumn
         {
-            get => _keyColumnName;
-            set => SetProperty(ref _keyColumnName, value);
+            get => _selectedKeyColumn;
+            set => SetProperty(ref _selectedKeyColumn, value);
         }
 
         public Array EditModes => Enum.GetValues(typeof(XMLEditMode));
+        private readonly IFileDialogService _fileDialogService;
 
         //==============================================================================================================================================================================================================
 
         public ICommand ImportCommand { get; }
+        public ICommand BrowseExcelCommand { get; }
+        public ICommand BrowseXmlCommand { get; }
+        public ICommand BrowseFolderCommand { get; }
 
-        public XMLEditorViewModel(IExcelReader excelReader, IDiagnosticLogger logger, IXMLReaderService xmlReaderService, IXMLNodeEditService xmlNodeEditService, IXMLTemplateService xmlTemplateService, IXMLExportService xmlExportService)
+        public XMLEditorViewModel(IExcelReader excelReader, IDiagnosticLogger logger, IXMLReaderService xmlReaderService, IXMLNodeEditService xmlNodeEditService, IXMLExportService xmlExportService, IFileDialogService fileDialogService)
         {
             _excelReader = excelReader;
             _logger = logger;
             _xmlReaderService = xmlReaderService;
-            _xmlNodeEditService = xmlNodeEditService;
-            _xmlTemplateService = xmlTemplateService;
+            _xmlNodeEditService = xmlNodeEditService;            
             _xmlExportService = xmlExportService;
+            _fileDialogService = fileDialogService;
 
-
-            XMLEditSheetName = "Sheet1";
-            XMLEditFileExPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles/ExcelTest.xlsx";
-            XMLEditFileXmlPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles/Destination_Generated.xml";
-            XMLEditTargetPath = "C:\\Users\\Eng\\Desktop\\ToolBoxV2TestFiles";
             ReplaceSelectionCommand = new RelayCommand(_ => ReplaceSelection());
             GenerateCommand = new RelayCommand(async _ => await GenerateFromTemplateAsync());
             SaveGeneratedCommand = new RelayCommand(_ => SaveGeneratedXml());
+            BrowseExcelCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.ExcelFile, p => XMLEditFileExPath = p));
+            BrowseXmlCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.XmlFile, p => XMLEditFileXmlPath = p));
+            BrowseFolderCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.Folder, p => XMLEditTargetPath = p));
 
 
             ImportCommand = new RelayCommand(async _ =>
@@ -268,7 +269,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
                 {
                     FilePath = XMLEditFileExPath,
                     SheetName = XMLEditSheetName,
-                    HeaderRowIndex = 1,
+                    HeaderRowIndex = XMLEditHeaderRow,
                     ExpectedColumns = Array.Empty<string>()
                 };
                 int counter = 0;
@@ -405,12 +406,23 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             // Build key definition only for Update mode
             XMLKeyDefinition? keyDef = null;
             if (EditMode == XMLEditMode.Update)
-            {
-                // Infer the element name from the template's root tag
-                string elementName;
+            {                           
+                if (string.IsNullOrWhiteSpace(SelectedKeyColumn))
+                { _logger.Warn("Key column name is empty."); return; }
+
+                // Optional sanity check: first row contains the key column?
+                if (excelRows.Any() && !excelRows.First().ContainsKey(SelectedKeyColumn))
+                {
+                    _logger.Warn($"Excel rows do not contain key column '{SelectedKeyColumn}'.");
+                    return;
+                }
+
+                var placeholder = $"[{SelectedKeyColumn}]";
+
+                XElement root;
                 try
                 {
-                    elementName = XElement.Parse(TemplateXml).Name.LocalName;
+                    root = XElement.Parse(TemplateXml);
                 }
                 catch
                 {
@@ -418,24 +430,37 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(KeyAttributeName))
-                { _logger.Warn("Key attribute name is empty."); return; }
+                // Look for the attribute that contains the placeholder
+                var matches = root
+                    .DescendantsAndSelf() // include root + all children
+                    .SelectMany(e => e.Attributes(), (elem, attr) => new { elem, attr })
+                    .Where(x =>
+                        (x.attr.Value ?? string.Empty)
+                            .Replace("\r", "")
+                            .Replace("\n", "")
+                            .Trim()
+                            .Contains(placeholder, StringComparison.Ordinal))
+                    .ToList();
 
-                if (string.IsNullOrWhiteSpace(KeyColumnName))
-                { _logger.Warn("Key column name is empty."); return; }
-
-                // Optional sanity check: first row contains the key column?
-                if (excelRows.Any() && !excelRows.First().ContainsKey(KeyColumnName))
+                if (matches.Count == 0)
                 {
-                    _logger.Warn($"Excel rows do not contain key column '{KeyColumnName}'.");
+                    _logger.Warn($"Placeholder '{placeholder}' not found in template. Key must appear exactly once.");
                     return;
                 }
 
+                if (matches.Count > 1)
+                {
+                    _logger.Warn($"Placeholder '{placeholder}' appears {matches.Count} times in template. Key must appear exactly once.");
+                    return;
+                }
+
+                var match = matches[0];
+
                 keyDef = new XMLKeyDefinition
                 {
-                    ElementName = elementName,
-                    AttributeName = KeyAttributeName,
-                    KeyColumnName = KeyColumnName
+                    ElementName = match.elem.Name.LocalName,
+                    AttributeName = match.attr.Name.LocalName,
+                    KeyColumnName = SelectedKeyColumn
                 };
             }
 
@@ -527,6 +552,15 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             {
                 _logger.Error("Failed to save generated XML.", ex);
             }
-        }       
+        }
+
+        private async Task BrowseAndAssignAsync(FileBrowseTarget target, Action<string> assignPath)
+        {
+            var path = await _fileDialogService.BrowseAsync(target);
+
+            if (!string.IsNullOrWhiteSpace(path))
+                assignPath(path);
+        }
+
     }
 }

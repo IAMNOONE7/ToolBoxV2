@@ -6,6 +6,8 @@
              xmlns:local="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.View"
              mc:Ignorable="d" 
              xmlns:domain="clr-namespace:ToolBoxV2.Domain.XMLEditor;assembly=ToolBoxV2.Domain"
+             xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+             xmlns:avalon ="clr-namespace:ToolBoxV2.Presentation.WPF.Helpers"
              d:DesignHeight="1500" d:DesignWidth="1900">
     <Grid>
         <Grid.RowDefinitions>
@@ -15,112 +17,171 @@
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="20*"/>
-            <ColumnDefinition Width="15*"/>
-            <ColumnDefinition Width="65*"/>
+            <ColumnDefinition Width="30*"/>            
+            <ColumnDefinition Width="70*"/>
         </Grid.ColumnDefinitions>
 
-        <Button Content="Load Data"  
-            Margin="5,20,10,5" 
-            Grid.Row="0"     
-            IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"
-            Command="{Binding ImportCommand}" />
+       
 
-        
+        <Grid Grid.Row="0" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="7*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding XMLEditFileExPath}" MinWidth="50" Margin="8" Grid.Column="0"/>
+                <Button  Command="{Binding BrowseExcelCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+            </Grid>
 
-        <!-- Mode -->
-        <StackPanel Orientation="Vertical" Margin="0,0,16,0" VerticalAlignment="Center" Grid.Column="1">
-            <TextBlock Text="Loading..." Grid.Column="1"  
-                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
-                       Foreground="OrangeRed" />
-            <TextBlock Text="Mode:" Margin="0,0,8,0" VerticalAlignment="Center"/>
-            <ComboBox Width="160"
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="7*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding XMLEditFileXmlPath}" MinWidth="50" Margin="8" Grid.Column="0"/>
+                <Button Command="{Binding BrowseXmlCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="7*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding XMLEditTargetPath}" MinWidth="50" Margin="8" Grid.Column="0"/>
+                <Button Command="{Binding BrowseFolderCommand}" Margin="8" MinWidth="20" Grid.Column="1"/>
+            </Grid>
+            
+            <TextBox Text="{Binding XMLEditSheetName}" Margin="8" Grid.Row="3"/>
+            <TextBox Text="{Binding XMLEditHeaderRow}" Margin="8" Grid.Row="4"/>
+            
+            <Button Content="Load Data"  
+                     Margin="8" 
+                     Grid.Row="5"     
+                     IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"
+                     Command="{Binding ImportCommand}" />
+        </Grid>
+
+        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical">
+            <TextBlock Text="Loading..." 
+                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Foreground="OrangeRed" />
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Mode:" 
+                           Margin="8" 
+                           VerticalAlignment="Center"/>
+
+                <ComboBox Width="160"
+                          Margin="8" 
                           ItemsSource="{Binding EditModes}"
                           SelectedItem="{Binding EditMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <StackPanel Orientation="Horizontal" Margin="0,10,0,0" VerticalAlignment="Center">
-                <TextBlock Text="Key attribute:" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                <TextBox Width="160"
-                         Text="{Binding KeyAttributeName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
+            
 
-            <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
-                <TextBlock Text="Key column:" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                <TextBox Width="160"
-                         Text="{Binding KeyColumnName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Key column:" 
+                           Margin="8" 
+                           VerticalAlignment="Center"/>
+                
+                <ComboBox
+                         ItemsSource="{Binding Parameters}"       
+                         SelectedItem="{Binding SelectedKeyColumn}"
+                         Width="200"
+                         Margin="8" />
             </StackPanel>
         </StackPanel>
 
-
-        <DataGrid ItemsSource="{Binding TableView}"
-                  Grid.Row="1"
-                  Grid.Column="0"
-                  Margin="8"
-                  AutoGenerateColumns="True"
-                  IsReadOnly="False" />
-
-        <TreeView Grid.Column="1"
-                  Grid.Row="1"
-                  Margin="8"
-                  ItemsSource="{Binding RootNode.Children}"
-                  SelectedItemChanged="TreeView_SelectedItemChanged">
-            <TreeView.Resources>
-                <!-- hierarchical template for XmlNodeModel -->
-                <HierarchicalDataTemplate DataType="{x:Type domain:XMLNodeModel}"
-                                          ItemsSource="{Binding Children}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                        <!-- show e.g. name attribute if present -->
-                        <TextBlock Text=" (" />
-                        <TextBlock Text="{Binding Attributes[name]}" />
-                        <TextBlock Text=")" />
-                    </StackPanel>
-                </HierarchicalDataTemplate>
-            </TreeView.Resources>
-        </TreeView>
-
-        <!-- parameters + button -->
-        <StackPanel Grid.Column="2" Margin="4">
-            <TextBlock Text="Parameters" FontWeight="Bold" Margin="0,0,0,4"/>
-            <ListBox ItemsSource="{Binding Parameters}"
-                 SelectedItem="{Binding SelectedParameter}"
-                 Margin="0,0,0,8"/>
-            <Button Content="Replace selection"
-                Command="{Binding ReplaceSelectionCommand}" />
-        </StackPanel>
-
-
-        <TextBox x:Name="XmlTextBox"
-             Grid.Column="2"
-             Grid.Row="1"
-             Text="{Binding TemplateXml, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-             AcceptsReturn="True"
-             AcceptsTab="True"
-             VerticalScrollBarVisibility="Auto"
-             HorizontalScrollBarVisibility="Auto"
-             FontFamily="Consolas"
-             SelectionChanged="XmlTextBox_SelectionChanged"
-             Margin="4"/>
-
-        <TextBox Grid.Column="2"
-                 Grid.Row="2"
-                 Grid.RowSpan="2"
-                 Text="{Binding GeneratedXmlPreview}"
-                 AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 FontFamily="Consolas"
-                 Margin="4"/>
-
-        <Button Content="Generate XML"
-                Grid.Row="2"                
+        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Vertical">
+            <Button Content="Generate XML"                           
                 Command="{Binding GenerateCommand}"
                 Margin="0,12,0,0"/>
 
-        <Button Content="Save generated XML"
-                Grid.Row="2"
-                Grid.Column="1"
-            Command="{Binding SaveGeneratedCommand}"
-            Margin="0,4,0,0"/>
+            <Button Content="Save generated XML"                
+                Command="{Binding SaveGeneratedCommand}"
+                Margin="0,4,0,0"/>
+        </StackPanel>
 
+        <Grid Grid.Row="0" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+            <DataGrid ItemsSource="{Binding TableView}"                      
+                       Margin="8"
+                       AutoGenerateColumns="True"
+                       IsReadOnly="False" 
+                       MinWidth="200"
+                       Grid.Column="0"/>
+
+            <TreeView Margin="8"
+                       ItemsSource="{Binding RootNode.Children}"
+                       SelectedItemChanged="TreeView_SelectedItemChanged"
+                       MinWidth="200"
+                       Grid.Column="1">
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type domain:XMLNodeModel}"
+                       ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                            <TextBlock Text=" (" />
+                            <TextBlock Text="{Binding Attributes[name]}" />
+                            <TextBlock Text=")" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
+            </TreeView>
+
+            <StackPanel Margin="4" Grid.Column="2">
+                <TextBlock Text="Parameters" 
+                            FontWeight="Bold" 
+                            Margin="0,0,0,4"/>
+                <ListBox ItemsSource="{Binding Parameters}"
+                          SelectedItem="{Binding SelectedParameter}"
+                          Margin="0,0,0,8"
+                          MinWidth="200"
+                          MinHeight="50"/>
+                <Button Content="Replace selection"
+                        Command="{Binding ReplaceSelectionCommand}" />
+            </StackPanel>
+        </Grid>       
+        
+        <avalonEdit:TextEditor x:Name="TemplateEditor" 
+                               Margin="8"
+                            avalon:AvalonEditBinding.Text="{Binding TemplateXml, Mode=TwoWay}"
+                            ShowLineNumbers="True"
+                            FontFamily="Consolas"
+                            FontSize="12"
+                            Grid.Row="1" Grid.Column="1"
+                            VerticalScrollBarVisibility="Visible"
+                            HorizontalScrollBarVisibility="Visible"
+                            VerticalAlignment="Stretch"
+                            HorizontalAlignment="Stretch"
+                            />
+        
+
+       
+        <avalonEdit:TextEditor Margin="8"                             
+                            x:Name="XmlEditor"
+                            FontFamily="Consolas"
+                            FontSize="12"
+                            ShowLineNumbers="True"
+                            IsReadOnly="True"
+                            Grid.Row="2" Grid.Column="1"
+                            VerticalScrollBarVisibility="Visible"
+                            HorizontalScrollBarVisibility="Visible"
+                            avalon:AvalonEditBinding.Text="{Binding GeneratedXmlPreview, Mode=TwoWay}"
+                            VerticalAlignment="Stretch"
+                            HorizontalAlignment="Stretch"
+                            />
     </Grid>
 </UserControl>

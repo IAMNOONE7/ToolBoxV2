@@ -6,7 +6,7 @@
         xmlns:local="ToolBoxV2.Presentation.WPF"
         xmlns:lm="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.View"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" MinHeight="1000" MinWidth="1200">
     <Grid>
         <lm:XMLEditorView/>
     </Grid>
