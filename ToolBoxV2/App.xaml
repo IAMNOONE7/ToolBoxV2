@@ -5,21 +5,34 @@
              xmlns:viewModel ="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.ViewModel"
              xmlns:view ="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.View">
     <Application.Resources>
-        <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Colors.xaml"/>
+                <ResourceDictionary Source="Resources/Fonts.xaml"/>
+                <ResourceDictionary Source="Resources/Metrics.xaml"/>
+                <ResourceDictionary Source="/Resources/MenuButtonTheme.xaml"/>
+                <ResourceDictionary Source="/Resources/TextBox1Theme.xaml"/>
+                <ResourceDictionary Source="/Resources/AppButtonTheme.xaml"/>
+                <ResourceDictionary Source="/Resources/CheckBoxTheme.xaml"/>
+                <ResourceDictionary Source="/Resources/DataGridTheme1.xaml"/>                
+                <ResourceDictionary Source="/Resources/ButtonTheme.xaml"/>              
+            </ResourceDictionary.MergedDictionaries>
 
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
-        <DataTemplate DataType="{x:Type viewModel:InitViewModel}">
-            <view:InitView/>
-        </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModel:InitViewModel}">
+                <view:InitView/>
+            </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewModel:LocalMessagesViewModel}">
-            <view:LocalMessageView/>
-        </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModel:LocalMessagesViewModel}">
+                <view:LocalMessageView/>
+            </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewModel:XMLEditorViewModel}">
-            <view:XMLEditorView/>
-        </DataTemplate>
-        
+            <DataTemplate DataType="{x:Type viewModel:XMLEditorViewModel}">
+                <view:XMLEditorView/>
+            </DataTemplate>
+
+        </ResourceDictionary>              
     </Application.Resources>
 </Application>

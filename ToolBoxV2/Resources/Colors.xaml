@@ -1,0 +1,40 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="MyPurple">#330066</Color>
+    <Color x:Key="MyBlue">#0099ff</Color>
+    <Color x:Key="MyPurpleBlue">#1C46AC</Color>
+    <Color x:Key="MyColor1">Black</Color>
+    <Color x:Key="MyColor2">White</Color>
+    <Color x:Key="MyColor3">#F0F0F0</Color>
+    <Color x:Key="MyColor4">#e0e0e0</Color>
+
+    <Color x:Key="SnackBarRed">#DA4167</Color>
+    <Color x:Key="SnackBarYellow">#F4A261</Color>
+    <Color x:Key="SnackBarBlack">#323232</Color>
+    <Color x:Key="SnackBarGreen">#52AA5E</Color>
+
+    <SolidColorBrush x:Key="ColorMyPurple" Color="{StaticResource MyPurple}" />
+    <SolidColorBrush x:Key="ColorMyBlue" Color="{StaticResource MyBlue}" />
+    <SolidColorBrush x:Key="ColorMyPurpleBlue" Color="{StaticResource MyPurpleBlue}" />
+    <SolidColorBrush x:Key="ColorMyColor1" Color="{StaticResource MyColor1}"/>
+    <SolidColorBrush x:Key="ColorMyColor2" Color="{StaticResource MyColor2}"/>
+    <SolidColorBrush x:Key="ColorMyColor3" Color="{StaticResource MyColor3}"/>
+    <SolidColorBrush x:Key="ColorMyColor4" Color="{StaticResource MyColor4}"/>
+
+    <SolidColorBrush x:Key="ColorSBError" Color="{StaticResource SnackBarRed}" />
+    <SolidColorBrush x:Key="ColorSBWarning" Color="{StaticResource SnackBarYellow}" />
+    <SolidColorBrush x:Key="ColorSBInfo" Color="{StaticResource SnackBarBlack}" />
+    <SolidColorBrush x:Key="ColorSBSuccess" Color="{StaticResource SnackBarGreen}" />
+
+    <LinearGradientBrush x:Key="GradientMyBluePurple" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource MyBlue}" Offset="0.0"/>
+        <GradientStop Color="{StaticResource MyPurpleBlue}" Offset="0.4"/>
+        <GradientStop Color="{StaticResource MyPurpleBlue}" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GradientMyPurpleBlue" StartPoint="1,1" EndPoint="0,0">
+        <GradientStop Color="{StaticResource MyBlue}" Offset="0.0"/>
+        <GradientStop Color="{StaticResource MyBlue}" Offset="0.4"/>
+        <GradientStop Color="{StaticResource MyPurpleBlue}" Offset="1.0"/>
+    </LinearGradientBrush>
+</ResourceDictionary>

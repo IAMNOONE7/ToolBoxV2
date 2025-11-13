@@ -33,48 +33,71 @@
         <!-- Row 1, Column 2: Close buttons or title -->
         <DockPanel Grid.Row="0" Grid.Column="1"               
                HorizontalAlignment="Right">
-            <Button Content="⎯"                     
+            <Button Content="⎯"     
+                    FontFamily="{StaticResource FontBold}"
+                    FontSize="{StaticResource FontSizeTitle}"
+                    Foreground="{StaticResource GradientMyBluePurple}"                   
                     Background="Transparent"
                     BorderThickness="0"
                     x:Name="MinimizeAppButton"
                     Margin="10,0,10,0"
                     Click="MinimizeAppButton_Click"
+                    Style="{StaticResource AppButtonTheme}"
                     />
 
-            <Button Content="X"                     
+            <Button Content="X"    
+                    FontFamily="{StaticResource FontBold}"
+                    FontSize="{StaticResource FontSizeTitle}"
+                    Foreground="{StaticResource GradientMyBluePurple}"  
                     Background="Transparent"
                     BorderThickness="0"
                     x:Name="CloseAppButton"
                     Margin="10,0,10,0"
                     Click="CloseAppButton_Click"
+                    Style="{StaticResource AppButtonTheme}"
                     />
         </DockPanel>
 
         <StackPanel Grid.Row="1" Grid.Column="0">
             <RadioButton Content="Home"
                           IsChecked="True"
-                          MinHeight="40"                                          
+                          MinHeight="40"     
+                          Padding="{StaticResource PaddingNormal}"                          
+                          Foreground="{StaticResource ColorMyColor1}"
+                          FontSize="{StaticResource FontSizeLarge}"
+                          FontFamily="{StaticResource FontBold}"
+                          Style="{StaticResource MenuButtonTheme}"
                           Command="{Binding ShowInitCommand}"/>           
 
-            <RadioButton Content="XML Editor"             
-               MinHeight="40"                                 
-               Command="{Binding ShowXMLEditorCommand}"/>
+            <RadioButton Content="XML Editor"
+                          Padding="{StaticResource PaddingNormal}"                          
+                          Foreground="{StaticResource ColorMyColor1}"
+                          FontSize="{StaticResource FontSizeLarge}"
+                          FontFamily="{StaticResource FontBold}"
+                          Style="{StaticResource MenuButtonTheme}"
+                          MinHeight="40"                                 
+                          Command="{Binding ShowXMLEditorCommand}"/>
 
-            <RadioButton Content="Local Messages"             
-               MinHeight="40"                                          
-               Command="{Binding ShowLocalMessagesCommand}"/>
+            <RadioButton Content="Local Messages"    
+                          Padding="{StaticResource PaddingNormal}"                          
+                          Foreground="{StaticResource ColorMyColor1}"
+                          FontSize="{StaticResource FontSizeLarge}"
+                          FontFamily="{StaticResource FontBold}"
+                          Style="{StaticResource MenuButtonTheme}"
+                          MinHeight="40"                                          
+                          Command="{Binding ShowLocalMessagesCommand}"/>
 
             
         </StackPanel>
 
-        <Border Grid.Row="1" Grid.Column="1" BorderThickness="15,15,0,15">
+        <Border Grid.Row="1" Grid.Column="1" BorderThickness="15,15,0,15" BorderBrush="{StaticResource GradientMyPurpleBlue}">
             <Grid>
                 <ContentControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Content="{Binding CurrentView}" />
                
             </Grid>
         </Border>
 
-        <Border Grid.Row="2" Grid.Column="1" Margin="20" Padding="10" >
+        <Border Grid.Row="2" Grid.Column="1" Margin="20" Padding="10" BorderBrush="{StaticResource GradientMyBluePurple}" BorderThickness="{StaticResource BorderThick}" Background="{StaticResource ColorMyColor3}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
