@@ -6,8 +6,91 @@
         xmlns:local="ToolBoxV2.Presentation.WPF"
         xmlns:lm="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.View"
         mc:Ignorable="d"
-        Title="MainWindow" MinHeight="1000" MinWidth="1200">
-    <Grid>
-        <lm:XMLEditorView/>
+        WindowStartupLocation="CenterScreen"
+        WindowState="Normal"
+        ResizeMode="CanResize"
+        WindowStyle="None"
+        MinWidth="1200"
+        MinHeight="900"
+        MouseDown="Window_MouseDown">
+    <Grid SnapsToDevicePixels="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Top bar -->
+            <RowDefinition Height="*"/>
+            <!-- Main content -->
+            <RowDefinition Height="Auto"/>
+
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <!-- Sidebar -->
+            <ColumnDefinition Width="*"/>
+            <!-- Main screen -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Row 1, Column 2: Close buttons or title -->
+        <DockPanel Grid.Row="0" Grid.Column="1"               
+               HorizontalAlignment="Right">
+            <Button Content="⎯"                     
+                    Background="Transparent"
+                    BorderThickness="0"
+                    x:Name="MinimizeAppButton"
+                    Margin="10,0,10,0"
+                    Click="MinimizeAppButton_Click"
+                    />
+
+            <Button Content="X"                     
+                    Background="Transparent"
+                    BorderThickness="0"
+                    x:Name="CloseAppButton"
+                    Margin="10,0,10,0"
+                    Click="CloseAppButton_Click"
+                    />
+        </DockPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="0">
+            <RadioButton Content="Home"
+                          IsChecked="True"
+                          MinHeight="40"                                          
+                          Command="{Binding ShowInitCommand}"/>           
+
+            <RadioButton Content="XML Editor"             
+               MinHeight="40"                                 
+               Command="{Binding ShowXMLEditorCommand}"/>
+
+            <RadioButton Content="Local Messages"             
+               MinHeight="40"                                          
+               Command="{Binding ShowLocalMessagesCommand}"/>
+
+            
+        </StackPanel>
+
+        <Border Grid.Row="1" Grid.Column="1" BorderThickness="15,15,0,15">
+            <Grid>
+                <ContentControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Content="{Binding CurrentView}" />
+               
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2" Grid.Column="1" Margin="20" Padding="10" >
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ListBox ItemsSource="{Binding FilteredMessages}"
+                         Height="200"                        
+                         BorderThickness="0"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         FontFamily="Consolas"
+                         FontSize="13"
+                         Grid.Column="0">                    
+                </ListBox>
+                <StackPanel Orientation="Vertical" Grid.Column="1" Margin="10,0,0,0">                    
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

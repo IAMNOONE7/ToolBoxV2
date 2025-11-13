@@ -7,8 +7,7 @@
              mc:Ignorable="d" 
              xmlns:domain="clr-namespace:ToolBoxV2.Domain.XMLEditor;assembly=ToolBoxV2.Domain"
              xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
-             xmlns:avalon ="clr-namespace:ToolBoxV2.Presentation.WPF.Helpers"
-             d:DesignHeight="1500" d:DesignWidth="1900">
+             xmlns:avalon ="clr-namespace:ToolBoxV2.Presentation.WPF.Helpers">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25*"/>

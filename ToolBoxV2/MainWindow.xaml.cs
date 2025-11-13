@@ -24,5 +24,21 @@ namespace ToolBoxV2.Presentation.WPF
             var vm = App.AppHost.Services.GetRequiredService<XMLEditorViewModel>();
             DataContext = vm;
         }
+
+        private void MinimizeAppButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void CloseAppButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+                this.DragMove();
+        }
     }
 }

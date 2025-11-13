@@ -1,9 +1,25 @@
 ﻿<Application x:Class="ToolBoxV2.Presentation.WPF.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:ToolBoxV2.Presentation.WPF.Converters">
+             xmlns:converters="clr-namespace:ToolBoxV2.Presentation.WPF.Converters"
+             xmlns:viewModel ="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.ViewModel"
+             xmlns:view ="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.View">
     <Application.Resources>
         <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+
+        <DataTemplate DataType="{x:Type viewModel:InitViewModel}">
+            <view:InitView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModel:LocalMessagesViewModel}">
+            <view:LocalMessageView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModel:XMLEditorViewModel}">
+            <view:XMLEditorView/>
+        </DataTemplate>
+        
     </Application.Resources>
 </Application>
