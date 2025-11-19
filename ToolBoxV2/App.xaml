@@ -7,6 +7,8 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ProgressBar.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ToggleButton.xaml" />
                 <ResourceDictionary Source="Resources/Colors.xaml"/>
                 <ResourceDictionary Source="Resources/Fonts.xaml"/>
                 <ResourceDictionary Source="Resources/Metrics.xaml"/>
@@ -15,11 +17,14 @@
                 <ResourceDictionary Source="/Resources/AppButtonTheme.xaml"/>
                 <ResourceDictionary Source="/Resources/CheckBoxTheme.xaml"/>
                 <ResourceDictionary Source="/Resources/DataGridTheme1.xaml"/>                
-                <ResourceDictionary Source="/Resources/ButtonTheme.xaml"/>              
+                <ResourceDictionary Source="/Resources/ButtonTheme.xaml"/>
+                <ResourceDictionary Source="/Resources/Button1Theme.xaml"/>
+                <ResourceDictionary Source="/Resources/ComboBox1Theme.xaml"/>               
             </ResourceDictionary.MergedDictionaries>
 
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
 
             <DataTemplate DataType="{x:Type viewModel:InitViewModel}">
                 <view:InitView/>

@@ -197,6 +197,12 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             set => SetProperty(ref _editMode, value);
         }
 
+        public bool IsUpdateMode
+        {
+            get => EditMode == XMLEditMode.Update;
+            set => EditMode = value ? XMLEditMode.Update : XMLEditMode.Generate;
+        }
+
         // which attribute on the target element is the key (e.g., "name", "id")
         private string _keyAttributeName = "name";
         public string KeyAttributeName
@@ -241,20 +247,26 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 
             ImportCommand = new RelayCommand(async _ =>
             {
-                var excelTask = LoadExcelAsync();
-                var xmlTask = LoadXmlAsync();
+                IsLoading = true;
 
-                await Task.WhenAll(excelTask, xmlTask);
+                try
+                {
+                    var excelTask = LoadExcelAsync();
+                    var xmlTask = LoadXmlAsync();
+
+                    await Task.WhenAll(excelTask, xmlTask);
+                }
+                finally
+                {
+                    IsLoading = false;
+                }
             });
         }
 
         private async Task LoadExcelAsync()
-        {
-            if (IsLoading)
-                return; // just in case someone bypasses UI
+        {            
             try
-            {
-                IsLoading = true;
+            {                
                 if (string.IsNullOrWhiteSpace(XMLEditSheetName) || string.IsNullOrWhiteSpace(XMLEditFileXmlPath) || string.IsNullOrWhiteSpace(XMLEditFileExPath))
                 {
                     _logger.Warn("File path or sheet name is empty.");
