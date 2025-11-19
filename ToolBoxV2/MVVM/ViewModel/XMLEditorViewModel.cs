@@ -518,8 +518,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
                 return updatedDoc.ToString(SaveOptions.DisableFormatting);
             });
 
-            GeneratedXmlPreview = finalXml;
-            _logger.Info("XML generated from template (via service).");
+            GeneratedXmlPreview = finalXml;            
         }
 
         // helper: turn your DataView into IEnumerable<Dictionary<string,string>>

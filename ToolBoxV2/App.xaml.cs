@@ -4,10 +4,12 @@ using System.Configuration;
 using System.Data;
 using System.Windows;
 using ToolBoxV2.Application;
+using ToolBoxV2.Application.Common;
 using ToolBoxV2.Infrastracture;
 using ToolBoxV2.Presentation.WPF.MVVM.View;
 using ToolBoxV2.Presentation.WPF.MVVM.ViewModel;
 using ToolBoxV2.Presentation.WPF.Services;
+using ToolBoxV2.Presentation.WPF.Services.Diagnostics;
 using ToolBoxV2.Presentation.WPF.Services.SnackBar;
 
 namespace ToolBoxV2.Presentation.WPF
@@ -23,6 +25,10 @@ namespace ToolBoxV2.Presentation.WPF
                 {
                     services.AddApplication();
                     services.AddInfrastructure();
+
+                    services.AddSingleton<ObservableDiagnosticLogger>(); 
+                    services.AddSingleton<IDiagnosticLogger>(sp =>
+                        sp.GetRequiredService<ObservableDiagnosticLogger>()); 
 
                     services.AddSingleton<IFileDialogService, FileDialogService>();
                     services.AddSingleton<ISnackBarManager, SnackBarManager>();

@@ -25,10 +25,10 @@ namespace ToolBoxV2.Infrastracture.LocalMessages
           CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(targetFolder))
-                throw new ArgumentException("Target folder cannot be empty.", nameof(targetFolder));
+                _logger.Error("Target folder cannot be empty.");
 
             if (!Directory.Exists(targetFolder))
-                throw new DirectoryNotFoundException($"Target folder '{targetFolder}' does not exist.");
+                _logger.Error($"Target folder '{targetFolder}' does not exist.");
 
             if (messages is null)
                 throw new ArgumentNullException(nameof(messages));
@@ -74,7 +74,7 @@ namespace ToolBoxV2.Infrastracture.LocalMessages
                         else
                         {
                             success++;
-                            _logger.Info($"Generated: {message.Name}.loc");
+                            //_logger.Info($"Generated: {message.Name}.loc");
                         }
                     }
                     catch (Exception ex)

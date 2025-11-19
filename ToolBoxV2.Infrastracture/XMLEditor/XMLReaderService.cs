@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using ToolBoxV2.Application.Common;
 using ToolBoxV2.Application.XMLEditor;
 using ToolBoxV2.Domain.XMLEditor;
 
@@ -19,6 +20,13 @@ namespace ToolBoxV2.Infrastracture.XMLEditor
     /// </summary>
     public class XMLReaderService : IXMLReaderService
     {
+        private readonly IDiagnosticLogger _logger;
+        public XMLReaderService(IDiagnosticLogger logger)
+        {
+            _logger = logger;
+        }
+
+
         /// <summary>
         /// Loads the given XML file and converts it into a recursive <see cref="XMLNodeModel"/>
         /// tree, preserving element order and whitespace.
@@ -28,11 +36,20 @@ namespace ToolBoxV2.Infrastracture.XMLEditor
         public XMLNodeModel LoadXmlAsTree(string filePath)
         {
             if (!File.Exists(filePath))
-                throw new FileNotFoundException("XML file not found", filePath);
+            {
+                _logger.Error("XML File does not exist.");
+                return null;
+            }           
 
             // PreserveWhitespace is important for these HMI-like XMLs
             var doc = XDocument.Load(filePath, LoadOptions.PreserveWhitespace);
-            var root = doc.Root ?? throw new InvalidOperationException("XML has no root element.");
+            if (doc.Root is null)
+            {
+                _logger.Error("XML has no root element.");
+                return null;   // stop here
+            }
+
+            var root = doc.Root;
 
             return ConvertToModel(root, "");
         }
@@ -54,15 +71,21 @@ namespace ToolBoxV2.Infrastracture.XMLEditor
         public XMLBlock GetBlockById(string filePath, string nodeId)
         {
             if (!File.Exists(filePath))
-                throw new FileNotFoundException("XML file not found", filePath);
+                _logger.Error("XML File does not exist.");
 
             // Load fresh copy from disk — see comment above for reasoning.
             var doc = XDocument.Load(filePath, LoadOptions.PreserveWhitespace);
-            var root = doc.Root ?? throw new InvalidOperationException("XML has no root element.");
+            if (doc.Root is null)
+            {
+                _logger.Error("XML has no root element.");
+                return null;   // stop here
+            }
+
+            var root = doc.Root;
 
             var element = FindByGeneratedId(root, nodeId, "");
             if (element == null)
-                throw new InvalidOperationException($"Node with id '{nodeId}' not found in XML.");
+                _logger.Error($"Node with id '{nodeId}' not found in XML.");
 
             // DisableFormatting - we get a compact version that we can safely string-replace
             return new XMLBlock

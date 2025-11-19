@@ -17,7 +17,7 @@ namespace ToolBoxV2.Infrastracture
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-            services.AddSingleton<IDiagnosticLogger, SimpleDiagnosticLogger>();
+           //services.AddSingleton<IDiagnosticLogger, SimpleDiagnosticLogger>();
             services.AddSingleton<IExcelReader, ClosedXMLExcelReader>();
             services.AddSingleton<IXMLReaderService, XMLEditor.XMLReaderService>();
             services.AddSingleton<IXMLExportService, XMLExportService>();
