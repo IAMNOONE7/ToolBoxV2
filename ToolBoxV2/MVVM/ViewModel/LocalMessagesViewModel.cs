@@ -13,6 +13,7 @@ using ToolBoxV2.Domain.LocalMessages;
 using ToolBoxV2.Presentation.WPF.Core;
 using ToolBoxV2.Presentation.WPF.Properties;
 using ToolBoxV2.Presentation.WPF.Services;
+using ToolBoxV2.Presentation.WPF.Services.SnackBar;
 
 namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 {
@@ -120,20 +121,20 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
         public ICommand BrowseFolderCommand { get; }
 
         public ICommand GenerateLocFilesCommand { get; }
-
-        public LocalMessagesViewModel(IExcelReader excelReader, IDiagnosticLogger logger, ILocalMessageIncrementalBuilderFactory builderFactory, IFileDialogService fileDialogService, ILocalMessageExportService messageExportService)
+        private readonly ISnackBarManager _snackBarManager;
+        public LocalMessagesViewModel(IExcelReader excelReader, IDiagnosticLogger logger, ILocalMessageIncrementalBuilderFactory builderFactory, IFileDialogService fileDialogService, ILocalMessageExportService messageExportService, ISnackBarManager snackBarManager)
         {
             _excelReader = excelReader;
             _logger = logger;
             _builderFactory = builderFactory;
             _fileDialogService = fileDialogService;
             _messageExportService = messageExportService;
-
+            _snackBarManager = snackBarManager;
 
             ImportCommand = new RelayCommand(async _ => await ImportAsync(), _ => !IsLoading);
             BrowseExcelCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.ExcelFile, p => LocalMessFilePath = p));            
             BrowseFolderCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.Folder, p => LocalMessTargetPath = p));
-            GenerateLocFilesCommand = new RelayCommand(async _ => await GenerateLocFilesAsync());
+            GenerateLocFilesCommand = new RelayCommand(async _ => await GenerateLocFilesAsync(), _ => !IsLoading);
         }      
 
         private async Task ImportAsync()
@@ -159,7 +160,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
                 {
                     FilePath = LocalMessFilePath,
                     SheetName = LocalMessSheetName,
-                    HeaderRowIndex = 1,
+                    HeaderRowIndex = LocalMessHeaderRow,
                     ExpectedColumns = new[] { "Name", "Index", "Text" }
                 };
                 int counter = 0;
@@ -194,6 +195,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             catch(Exception ex) 
             {
                 _logger.Error("Error occured during importing. ", ex);
+                await HandleSnackBar(MessageToSnackLevel.Error, "Loading Excel finished with errors.");
             }
             finally
             {
@@ -221,34 +223,54 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             {
                 _logger.Warn("No Local Messages to export.");
                 return;
-            }           
+            }
+            if (IsLoading)
+                return; // just in case someone bypasses UI
 
             try
             {
+                IsLoading = true;
                 var result = await _messageExportService.ExportAsync(LocalMessTargetPath, LM);
 
                 if (result.FailureCount > 0 && result.SuccessCount == 0)
                 {
                     _logger.Warn("Local Message generation failed.");
+                    await HandleSnackBar(MessageToSnackLevel.Error, "Generation failed.");
                 }
                 else if (result.FailureCount > 0)
                 {
                     _logger.Warn(
                         $"Local Message generation completed with issues. Success: {result.SuccessCount}, Failed: {result.FailureCount}.");
+                    await HandleSnackBar(MessageToSnackLevel.Warning, "Generation completed with issues.");
                 }
                 else
                 {
                     _logger.Info($"Local Message generation completed. Files: {result.SuccessCount}.");
+                    LM.Clear();
+                    Items.Clear();
+                    IsLoading = false;
+                    await HandleSnackBar(MessageToSnackLevel.Success, "Generation completed.");
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error("Unexpected error during Local Message generation.", ex);
+                await HandleSnackBar(MessageToSnackLevel.Error, "Generation failed.");
             }
             finally
             {
                 
             }
+        }
+
+        private async Task HandleSnackBar(MessageToSnackLevel _level, string _content)
+        {
+            await _snackBarManager.EnqueueMessageAsync(new MessageToSnack
+            {
+                Content = _content,
+                Level = _level,
+                Duration = TimeSpan.FromSeconds(4)
+            });
         }
     }
 }

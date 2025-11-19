@@ -8,6 +8,7 @@ using ToolBoxV2.Infrastracture;
 using ToolBoxV2.Presentation.WPF.MVVM.View;
 using ToolBoxV2.Presentation.WPF.MVVM.ViewModel;
 using ToolBoxV2.Presentation.WPF.Services;
+using ToolBoxV2.Presentation.WPF.Services.SnackBar;
 
 namespace ToolBoxV2.Presentation.WPF
 { 
@@ -24,6 +25,7 @@ namespace ToolBoxV2.Presentation.WPF
                     services.AddInfrastructure();
 
                     services.AddSingleton<IFileDialogService, FileDialogService>();
+                    services.AddSingleton<ISnackBarManager, SnackBarManager>();
 
                     // viewmodels
                     services.AddSingleton<MainViewModel>();

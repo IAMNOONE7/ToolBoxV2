@@ -12,7 +12,9 @@
         WindowStyle="None"
         MinWidth="1200"
         MinHeight="900"
-        MouseDown="Window_MouseDown">
+        MouseDown="Window_MouseDown"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:models="clr-namespace:ToolBoxV2.Presentation.WPF.Services.SnackBar">
     <Grid SnapsToDevicePixels="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -93,7 +95,18 @@
         <Border Grid.Row="1" Grid.Column="1" BorderThickness="15,15,0,15" BorderBrush="{StaticResource GradientMyPurpleBlue}">
             <Grid>
                 <ContentControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Content="{Binding CurrentView}" />
-               
+                <materialDesign:Snackbar 
+                          x:Name="MainSnackbar"
+                          Width="400"
+                          IsActive="{Binding CurrentMessage, Converter={StaticResource NullToBoolConverter}}"
+                          Message="{Binding CurrentMessage.Content}"
+                          VerticalAlignment="Bottom"
+                          HorizontalAlignment="Center"
+                          HorizontalContentAlignment="Center" 
+                          Padding="10" 
+                          Background="{Binding SnackbarBackgroundBrush}"
+                          >
+                </materialDesign:Snackbar>
             </Grid>
         </Border>
 

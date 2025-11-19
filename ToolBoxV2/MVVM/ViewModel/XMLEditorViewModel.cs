@@ -7,6 +7,7 @@ using System.Data;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -19,6 +20,7 @@ using ToolBoxV2.Infrastracture.Common;
 using ToolBoxV2.Infrastracture.XMLEditor;
 using ToolBoxV2.Presentation.WPF.Core;
 using ToolBoxV2.Presentation.WPF.Services;
+using ToolBoxV2.Presentation.WPF.Services.SnackBar;
 using static ToolBoxV2.Application.XMLEditor.IXMLNodeEditService;
 
 namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
@@ -227,8 +229,8 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
         public ICommand BrowseExcelCommand { get; }
         public ICommand BrowseXmlCommand { get; }
         public ICommand BrowseFolderCommand { get; }
-
-        public XMLEditorViewModel(IExcelReader excelReader, IDiagnosticLogger logger, IXMLReaderService xmlReaderService, IXMLNodeEditService xmlNodeEditService, IXMLExportService xmlExportService, IFileDialogService fileDialogService)
+        private readonly ISnackBarManager _snackBarManager;
+        public XMLEditorViewModel(IExcelReader excelReader, IDiagnosticLogger logger, IXMLReaderService xmlReaderService, IXMLNodeEditService xmlNodeEditService, IXMLExportService xmlExportService, IFileDialogService fileDialogService, ISnackBarManager snackBarManager)
         {
             _excelReader = excelReader;
             _logger = logger;
@@ -236,10 +238,11 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             _xmlNodeEditService = xmlNodeEditService;            
             _xmlExportService = xmlExportService;
             _fileDialogService = fileDialogService;
+            _snackBarManager = snackBarManager;
 
             ReplaceSelectionCommand = new RelayCommand(_ => ReplaceSelection());
             GenerateCommand = new RelayCommand(async _ => await GenerateFromTemplateAsync());
-            SaveGeneratedCommand = new RelayCommand(_ => SaveGeneratedXml());
+            SaveGeneratedCommand = new RelayCommand(async _ =>  await SaveGeneratedXml());
             BrowseExcelCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.ExcelFile, p => XMLEditFileExPath = p));
             BrowseXmlCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.XmlFile, p => XMLEditFileXmlPath = p));
             BrowseFolderCommand = new RelayCommand(async _ => await BrowseAndAssignAsync(FileBrowseTarget.Folder, p => XMLEditTargetPath = p));
@@ -329,6 +332,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             catch (Exception ex)
             {
                 _logger.Error("Error occured during importing. ", ex);
+                await HandleSnackBar(MessageToSnackLevel.Error, "Loading Excel finished with errors.");
             }
             finally
             {
@@ -341,8 +345,15 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
         {
             if (string.IsNullOrWhiteSpace(XMLEditFileXmlPath))
                 return;
-
-            RootNode = await Task.Run(() => _xmlReaderService.LoadXmlAsTree(XMLEditFileXmlPath));
+            try
+            {
+                RootNode = await Task.Run(() => _xmlReaderService.LoadXmlAsTree(XMLEditFileXmlPath));
+            }
+            catch (Exception ex) 
+            {
+                _logger.Error("Error occured during importing. ", ex);
+                await HandleSnackBar(MessageToSnackLevel.Error, "Loading XML finished with errors.");
+            }                        
         }
 
 
@@ -534,7 +545,7 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
             return list;
         }
 
-        private void SaveGeneratedXml()
+        private async Task SaveGeneratedXml()
         {
             if (string.IsNullOrWhiteSpace(GeneratedXmlPreview))
             {
@@ -556,13 +567,27 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
                 var baseName = Path.GetFileNameWithoutExtension(XMLEditFileXmlPath) + "_generated";
 
                 // delegate to service
-                _xmlExportService.Save(doc, XMLEditTargetPath, baseName);
+                await Task.Run(() =>
+                {
+                    _xmlExportService.Save(doc, XMLEditTargetPath, baseName);
+                });
+                _logger.Info("Generated XML saved via export service.");               
 
-                _logger.Info("Generated XML saved via export service.");
+                GeneratedXmlPreview = string.Empty;
+                SelectedParameter = null;
+
+                SelectedBlock = null; // TreeView selection
+                SelectedKeyColumn = null;
+
+                SelectionStart = 0;
+                SelectionLength = 0;             
+                TemplateXml = string.Empty;
+                await HandleSnackBar(MessageToSnackLevel.Success, "XML Saved.");
             }
             catch (Exception ex)
             {
                 _logger.Error("Failed to save generated XML.", ex);
+                await HandleSnackBar(MessageToSnackLevel.Error, "Saving XML finished with errors.");
             }
         }
 
@@ -572,6 +597,16 @@ namespace ToolBoxV2.Presentation.WPF.MVVM.ViewModel
 
             if (!string.IsNullOrWhiteSpace(path))
                 assignPath(path);
+        }
+
+        private async Task HandleSnackBar(MessageToSnackLevel _level, string _content)
+        {
+            await _snackBarManager.EnqueueMessageAsync(new MessageToSnack
+            {
+                Content = _content,
+                Level = _level,
+                Duration = TimeSpan.FromSeconds(4)
+            });
         }
 
     }

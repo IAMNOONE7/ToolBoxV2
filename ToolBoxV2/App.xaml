@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:converters="clr-namespace:ToolBoxV2.Presentation.WPF.Converters"
              xmlns:viewModel ="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.ViewModel"
-             xmlns:view ="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.View">
+             xmlns:view ="clr-namespace:ToolBoxV2.Presentation.WPF.MVVM.View"
+             xmlns:conv1="clr-namespace:ToolBoxV2.Presentation.WPF.Services.SnackBar">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -25,6 +26,7 @@
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+            <conv1:NullToBoolConverter x:Key="NullToBoolConverter"/>
 
             <DataTemplate DataType="{x:Type viewModel:InitViewModel}">
                 <view:InitView/>
