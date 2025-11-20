@@ -172,21 +172,6 @@ ToolBoxV2 is both a functional tool and a practical example of **CLEAN architect
 
 ---
 
-## Project Structure
-
-ToolBoxV2 is organized into four projects that reflect the CLEAN Architecture layering.
-ToolBoxV2/
-│
-├── ToolBoxV2.Domain/ # Domain models (pure business objects)
-│
-├── ToolBoxV2.Application/ # Use cases + service interfaces
-│
-├── ToolBoxV2.Infrastructure/ # Implementations (IO, XML, Excel, Logging)
-│
-└── ToolBoxV2.Presentation.WPF/ # WPF MVVM UI layer (frontend)
-
----
-
 ## Features at a Glance
 
 ToolBoxV2 focuses on two major workflows — **XML editing** and **Local Message generation** — supported by a clean architecture and a modern WPF UI.
@@ -238,7 +223,7 @@ ToolBoxV2 focuses on two major workflows — **XML editing** and **Local Message
 
 ---
 
-## 🧱 Tech Stack
+## Tech Stack
 
 ToolBoxV2 is built on a modern .NET ecosystem with a focus on clean separation, maintainability, and UI responsiveness.
 
